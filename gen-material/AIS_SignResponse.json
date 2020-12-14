@@ -22,7 +22,7 @@
                         "sc.Detail": {
                             "ns1.detail": "Mobile user account needs to be activated",
                             "ns2.UserAssistance": {
-                                "ns2.PortalUrl": "https://.../MobileId?reactivateMobileId=true&msisdn=41791234567"
+                                "ns2.PortalUrl": "https://.../MobileId?reactivateMobileId=true&msisdn=41999999999"
                             }
                         }
                     }
