@@ -57,6 +57,9 @@
                         }
                     ]
                 }
+            },
+            "Timestamp": {
+                "RFC3161TimeStampToken": "MIIwg....=="
             }
         }
     }

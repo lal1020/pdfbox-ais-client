@@ -1,5 +1,7 @@
-package com.swisscom.ais.client;
+package com.swisscom.ais.client.rest;
 
+import com.swisscom.ais.client.CoreValues;
+import com.swisscom.ais.client.SignatureConfig;
 import com.swisscom.ais.client.rest.model.pendingreq.AISPendingRequest;
 import com.swisscom.ais.client.rest.model.pendingreq.AsyncPendingRequest;
 import com.swisscom.ais.client.rest.model.signreq.*;
@@ -9,44 +11,46 @@ import java.util.Arrays;
 
 public class ModelBuilder {
 
-    public static AISSignRequest buildAisSignRequest(SignatureConfig config) {
+    public static AISSignRequest buildAisSignRequest(String digestAlgorithm,
+                                                     String digestContent,
+                                                     String signatureType) {
         // Input documents --------------------------------------------------------------------------------
         // TODO this only allows one input document to be specified
         DocumentHash documentHash = new DocumentHash();
         documentHash.setId(Utils.generateDocumentId());
-        documentHash.setDsigDigestMethod(new DsigDigestMethod().withAlgorithm(config.getDocumentDigestAlgorithm()));
+        documentHash.setDsigDigestMethod(new DsigDigestMethod().withAlgorithm(digestAlgorithm));
         // TODO change this to support multiple document digest inputs
-        documentHash.setDsigDigestValue(config.getDocumentDigest());
+        documentHash.setDsigDigestValue(digestContent);
 
         InputDocuments inputDocuments = new InputDocuments();
         inputDocuments.setDocumentHash(documentHash);
 
         // Optional inputs --------------------------------------------------------------------------------
-        AddTimestamp addTimestamp = new AddTimestamp();
-        addTimestamp.setType(CoreValues.TIMESTAMP_TYPE_RFC_3161); // TODO
+//        AddTimestamp addTimestamp = new AddTimestamp();
+//        addTimestamp.setType(CoreValues.TIMESTAMP_TYPE_RFC_3161); // TODO
 
         ClaimedIdentity claimedIdentity = new ClaimedIdentity();
-        claimedIdentity.setName(config.getClaimedIdentityName());
+        claimedIdentity.setName("ais-90days-trial-withRAservice");
 
-        ScPhone phone = new ScPhone();
-        phone.setScLanguage(config.getPromptLanguage());
-        phone.setScMSISDN(config.getPromptMsisdn());
-        phone.setScMessage(config.getPromptMessage());
+//        ScPhone phone = new ScPhone();
+//        phone.setScLanguage(config.getPromptLanguage());
+//        phone.setScMSISDN(config.getPromptMsisdn());
+//        phone.setScMessage(config.getPromptMessage());
 
-        ScStepUpAuthorisation stepUpAuthorisation = new ScStepUpAuthorisation();
-        stepUpAuthorisation.setScPhone(phone);
+//        ScStepUpAuthorisation stepUpAuthorisation = new ScStepUpAuthorisation();
+//        stepUpAuthorisation.setScPhone(phone);
 
-        ScCertificateRequest certificateRequest = new ScCertificateRequest();
-        certificateRequest.setScDistinguishedName(config.getDistinguishedName());
-        certificateRequest.setScStepUpAuthorisation(stepUpAuthorisation);
+//        ScCertificateRequest certificateRequest = new ScCertificateRequest();
+//        certificateRequest.setScDistinguishedName(config.getDistinguishedName());
+//        certificateRequest.setScStepUpAuthorisation(stepUpAuthorisation);
 
         OptionalInputs optionalInputs = new OptionalInputs();
-        optionalInputs.setAddTimestamp(addTimestamp);
-        optionalInputs.setAdditionalProfile(Arrays.asList(config.getAdditionalProfiles()));
+//        optionalInputs.setAddTimestamp(addTimestamp);
+        optionalInputs.setAdditionalProfile(Arrays.asList("urn:oasis:names:tc:dss:1.0:profiles:timestamping"));
         optionalInputs.setClaimedIdentity(claimedIdentity);
-        optionalInputs.setSignatureType(CoreValues.SIGNATURE_TYPE_RFC_3369); // TODO
+        optionalInputs.setSignatureType(signatureType); // TODO
         optionalInputs.setScAddRevocationInformation(""); // TODO
-        optionalInputs.setScCertificateRequest(certificateRequest);
+//        optionalInputs.setScCertificateRequest(certificateRequest);
 
         // Sign request --------------------------------------------------------------------------------
         SignRequest request = new SignRequest();

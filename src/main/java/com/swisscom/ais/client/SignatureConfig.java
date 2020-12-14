@@ -4,7 +4,9 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
-import java.util.StringTokenizer;
+
+import static com.swisscom.ais.client.utils.Utils.getNotNull;
+import static com.swisscom.ais.client.utils.Utils.getStringArray;
 
 public class SignatureConfig {
 
@@ -158,23 +160,6 @@ public class SignatureConfig {
         promptMessage = getNotNull(properties, "signature.prompt.message");
         distinguishedName = getNotNull(properties, "signature.distinguishedName");
         additionalProfiles = getStringArray(getNotNull(properties, "signature.additionalProfilesCsv"));
-    }
-
-    private String getNotNull(Properties properties, String propertyName) {
-        String value = properties.getProperty(propertyName);
-        if (value == null) {
-            throw new IllegalStateException("Invalid configuration. The [" + propertyName + "] is missing or is empty");
-        }
-        return value;
-    }
-
-    private String[] getStringArray(String csv) {
-        StringTokenizer tokenizer = new StringTokenizer(csv, ",");
-        String[] result = new String[tokenizer.countTokens()];
-        for (int index = 0; index < result.length; index++) {
-            result[index] = tokenizer.nextToken().trim();
-        }
-        return result;
     }
 
 }

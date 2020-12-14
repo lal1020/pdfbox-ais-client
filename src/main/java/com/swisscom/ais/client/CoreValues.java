@@ -36,6 +36,13 @@ public class CoreValues {
         return false;
     }
 
+    public static boolean responseIsMajorSuccess(AISSignResponse response) {
+        return response != null &&
+               response.getSignResponse() != null &&
+               response.getSignResponse().getResult() != null &&
+               RESULT_MAJOR_SUCCESS.equals(response.getSignResponse().getResult().getResultMajor());
+    }
+
     public static boolean responseHasStepUpConsentUrl(AISSignResponse response) {
         return response != null &&
                response.getSignResponse() != null &&
