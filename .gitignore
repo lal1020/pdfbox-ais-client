@@ -34,3 +34,5 @@ docs/* - Copy*.docx
 docs/*.pdf
 
 gen-material/gen
+
+local-*.*

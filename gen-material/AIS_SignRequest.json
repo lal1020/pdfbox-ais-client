@@ -8,14 +8,14 @@
                 "dsig.DigestMethod": {
                     "@Algorithm": "http://www.w3.org/2001/04/xmlenc#sha512"
                 },
-                "dsig.DigestValue": "NA6wKClPbA+TYHW7GhPIiXn6gCGv9gSqOa508QzLGeJJYLjOfVD1tSD820M8btjEP49VhiAVK9xc/Y1z6hx+6g=="
+                "dsig.DigestValue": "digest-value"
             },
             "DocumentHash": {
                 "@ID": "8lbepdfsdfe",
                 "dsig.DigestMethod": {
                     "@Algorithm": "http://www.w3.org/2001/04/xmlenc#sha512"
                 },
-                "dsig.DigestValue": "NA6wKClPbA+TYHW7GhPIiXn6gCGv9gSqOa508QzLGeJJYLjOfVD1tSD820M8btjEP49VhiAVK9xc/Y1z6hx+6g=="
+                "dsig.DigestValue": "digest-value"
             }
         },
         "OptionalInputs": {
@@ -36,7 +36,7 @@
             "sc.AddRevocationInformation": "",
             "sc:SignatureStandard": "PADES",
             "sc.CertificateRequest": {
-                "sc.DistinguishedName": "cn=TEST Bogdan Mocanu, givenname=Bogdan, surname=Mocanu, c=CH, serialnumber={{evidenceid}}",
+                "sc.DistinguishedName": "cn=TEST User, givenname=Max, surname=Maximus, c=US, serialnumber=abcdefabcdefabcdefabcdefabcdef",
                 "sc.StepUpAuthorisation": {
                     "sc.Phone": {
                         "sc.Language": "en",

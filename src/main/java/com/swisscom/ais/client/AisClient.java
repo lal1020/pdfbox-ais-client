@@ -2,16 +2,11 @@ package com.swisscom.ais.client;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.swisscom.ais.client.rest.model.pendingreq.AISPendingRequest;
 import com.swisscom.ais.client.rest.model.signreq.AISSignRequest;
-import com.swisscom.ais.client.rest.model.signreq.DocumentHash;
-import com.swisscom.ais.client.rest.model.signreq.DsigDigestMethod;
-import com.swisscom.ais.client.rest.model.signreq.InputDocuments;
-import com.swisscom.ais.client.rest.model.signreq.SignRequest;
 import com.swisscom.ais.client.rest.model.signresp.AISSignResponse;
-import com.swisscom.ais.client.utils.Utils;
 
 import org.apache.commons.codec.CharEncoding;
-import org.apache.commons.codec.binary.Base64;
 import org.apache.hc.client5.http.classic.methods.HttpPost;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
@@ -21,39 +16,38 @@ import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
 import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactory;
 import org.apache.hc.core5.http.ContentType;
+import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.ParseException;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.io.entity.StringEntity;
 import org.apache.hc.core5.ssl.PrivateKeyStrategy;
 import org.apache.hc.core5.ssl.SSLContextBuilder;
 import org.apache.hc.core5.ssl.SSLContexts;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.bouncycastle.openssl.PEMDecryptorProvider;
+import org.bouncycastle.openssl.PEMEncryptedKeyPair;
+import org.bouncycastle.openssl.PEMKeyPair;
+import org.bouncycastle.openssl.PEMParser;
+import org.bouncycastle.openssl.jcajce.JcaPEMKeyConverter;
+import org.bouncycastle.openssl.jcajce.JcePEMDecryptorProviderBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.BufferedReader;
 import java.io.Closeable;
 import java.io.FileInputStream;
-import java.io.FileReader;
 import java.io.IOException;
-import java.security.GeneralSecurityException;
-import java.security.KeyFactory;
+import java.io.InputStreamReader;
 import java.security.KeyStore;
+import java.security.PrivateKey;
+import java.security.Security;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
-import java.security.interfaces.RSAPrivateKey;
-import java.security.spec.PKCS8EncodedKeySpec;
 import java.util.concurrent.TimeUnit;
 
 import javax.net.ssl.SSLException;
 
 public class AisClient implements Closeable {
-
-    private static final String CLIENT_KEY_FILE = "D:/Projects/Swisscom/AIS/Tests/bogdan-mocanu-ais.key";
-    private static final String CLIENT_CERTIFICATE_FILE = "D:/Projects/Swisscom/AIS/Tests/bogdan-mocanu-ais.crt";
-    private static final String SERVER_CERTIFICATE_FILE = "D:/Projects/Swisscom/AIS/Tests/ais-ca-ssl.crt";
-    private static final String CLIENT_KEYSTORE_PASSWORD = "secret"; // built-in
-    private static final String CLIENT_KEYSTORE_KEY_PASSWORD = "secret";
 
     private static final int CLIENT_MAX_CONNECTION_TOTAL = 20;
     private static final int CLIENT_MAX_CONNECTIONS_PER_ROUTE = 10;
@@ -62,27 +56,21 @@ public class AisClient implements Closeable {
 
     // ----------------------------------------------------------------------------------------------------
 
-    public static void main(String[] args) {
-        AisClient client = new AisClient();
-        client.initialize();
-
-    }
-
-    // ----------------------------------------------------------------------------------------------------
-
     private static final Logger log = LoggerFactory.getLogger(AisClient.class);
 
     private ObjectMapper jacksonMapper;
     private CloseableHttpClient httpClient;
 
-    public void initialize() {
+    public void initialize(SignatureConfig config) {
+        Security.addProvider(new BouncyCastleProvider());
         jacksonMapper = new ObjectMapper();
 
         SSLConnectionSocketFactory sslConnectionSocketFactory;
         try {
             SSLContextBuilder sslContextBuilder = SSLContexts.custom()
-                .loadKeyMaterial(produceTheKeyStore(), CLIENT_KEYSTORE_KEY_PASSWORD.toCharArray(), produceAPrivateKeyStrategy());
-            sslContextBuilder.loadTrustMaterial(produceTheTrustStore(), null);
+                .loadKeyMaterial(produceTheKeyStore(config),
+                                 config.getClientKeyPassword().toCharArray(), produceAPrivateKeyStrategy());
+            sslContextBuilder.loadTrustMaterial(produceTheTrustStore(config), null);
             sslConnectionSocketFactory = new SSLConnectionSocketFactory(sslContextBuilder.build());
         } catch (Exception e) {
             throw new RuntimeException("Failed to configure the TLS/SSL connection factory for the AIS client", e);
@@ -113,27 +101,16 @@ public class AisClient implements Closeable {
 
     // ----------------------------------------------------------------------------------------------------
 
-    public void requestSignature() {
-        // TODO this only allows one input document to be specified
-        DocumentHash documentHash = new DocumentHash();
-        documentHash.setId(Utils.generateDocumentId());
-        documentHash.setDsigDigestMethod(new DsigDigestMethod().withAlgorithm(DefaultValues.DIGEST_ALGO_SHA512));
-        // TODO change this to actual digest
-        documentHash.setDsigDigestValue("NA6wKClPbA+TYHW7GhPIiXn6gCGv9gSqOa508QzLGeJJYLjOfVD1tSD820M8btjEP49VhiAVK9xc/Y1z6hx+6g==");
+    public AISSignResponse requestSignature(SignatureConfig config) {
+        AISSignRequest requestWrapper = ModelBuilder.buildAisSignRequest(config);
+        return sendAndReceive("SignRequest", CoreValues.AIS_REST_SIGN_URL,
+                              requestWrapper, AISSignResponse.class);
+    }
 
-        InputDocuments inputDocuments = new InputDocuments();
-        inputDocuments.setDocumentHash(documentHash);
-
-        SignRequest request = new SignRequest();
-        request.setRequestID(Utils.generateRequestId());
-        request.setProfile(DefaultValues.SWISSCOM_BASIC_PROFILE);
-
-        AISSignRequest requestWrapper = new AISSignRequest();
-        requestWrapper.setSignRequest(request);
-
-        AISSignResponse responseWrapper = sendAndReceive("SignRequest", DefaultValues.AIS_REST_URL,
-                                                         requestWrapper, AISSignResponse.class);
-
+    public AISSignResponse pollForSignatureStatus(SignatureConfig config, String responseId) {
+        AISPendingRequest requestWrapper = ModelBuilder.buildAisPendingRequest(config, responseId);
+        return sendAndReceive("PendingRequest", CoreValues.AIS_REST_PENDING_URL,
+                              requestWrapper, AISSignResponse.class);
     }
 
     // ----------------------------------------------------------------------------------------------------
@@ -152,6 +129,7 @@ public class AisClient implements Closeable {
 
         HttpPost httpPost = new HttpPost(serviceUrl);
         httpPost.setEntity(new StringEntity(requestJson, ContentType.APPLICATION_JSON, CharEncoding.UTF_8, false));
+        httpPost.setHeader(HttpHeaders.ACCEPT, ContentType.APPLICATION_JSON);
         log.info("{}: Sending request to: [{}]", operationName, serviceUrl);
         log.debug("{}: Sending JSON to: [{}], content: [{}]", operationName, serviceUrl, requestJson);
 
@@ -192,16 +170,17 @@ public class AisClient implements Closeable {
 
     // ----------------------------------------------------------------------------------------------------
 
-    private KeyStore produceTheKeyStore() {
+    private KeyStore produceTheKeyStore(SignatureConfig config) {
         try {
             CertificateFactory fact = CertificateFactory.getInstance("X.509");
-            FileInputStream is = new FileInputStream(CLIENT_CERTIFICATE_FILE);
+            FileInputStream is = new FileInputStream(config.getClientCertificateFile());
             X509Certificate certificate = (X509Certificate) fact.generateCertificate(is);
-            RSAPrivateKey privateKey = getPrivateKey(CLIENT_KEY_FILE);
+            PrivateKey privateKey = getPrivateKey(config.getClientKeyFile(), config.getClientKeyPassword());
 
             KeyStore keyStore = KeyStore.getInstance("jks");
             keyStore.load(null, null);
-            keyStore.setKeyEntry("main", privateKey, CLIENT_KEYSTORE_PASSWORD.toCharArray(), new Certificate[]{certificate});
+            // the keystore password is not used at this point, can be any value
+            keyStore.setKeyEntry("main", privateKey, "secret".toCharArray(), new Certificate[]{certificate});
 
             return keyStore;
         } catch (Exception e) {
@@ -209,10 +188,10 @@ public class AisClient implements Closeable {
         }
     }
 
-    private KeyStore produceTheTrustStore() {
+    private KeyStore produceTheTrustStore(SignatureConfig config) {
         try {
             CertificateFactory fact = CertificateFactory.getInstance("X.509");
-            FileInputStream is = new FileInputStream(SERVER_CERTIFICATE_FILE);
+            FileInputStream is = new FileInputStream(config.getServerCertificateFile());
             X509Certificate certificate = (X509Certificate) fact.generateCertificate(is);
 
             KeyStore keyStore = KeyStore.getInstance("jks");
@@ -225,26 +204,14 @@ public class AisClient implements Closeable {
         }
     }
 
-    private static String getKey(String filename) throws IOException {
-        // Read key from file
-        BufferedReader br = new BufferedReader(new FileReader(filename));
-        StringBuilder contentBuilder = new StringBuilder(500);
-        String line;
-        while ((line = br.readLine()) != null) {
-            contentBuilder.append(line).append('\n');
-        }
-        br.close();
-        return contentBuilder.toString();
-    }
+    public static PrivateKey getPrivateKey(String filename, String keyPassword) throws IOException {
+        PEMParser pemParser = new PEMParser(new InputStreamReader(new FileInputStream(filename)));
+        PEMEncryptedKeyPair encryptedKeyPair = (PEMEncryptedKeyPair) pemParser.readObject();
+        PEMDecryptorProvider decryptorProvider = new JcePEMDecryptorProviderBuilder().build(keyPassword.toCharArray());
+        PEMKeyPair pemKeyPair = encryptedKeyPair.decryptKeyPair(decryptorProvider);
 
-    public static RSAPrivateKey getPrivateKey(String filename) throws IOException, GeneralSecurityException {
-        String privateKeyPEM = getKey(filename);
-        privateKeyPEM = privateKeyPEM.replace("-----BEGIN PRIVATE KEY-----\n", "");
-        privateKeyPEM = privateKeyPEM.replace("-----END PRIVATE KEY-----", "");
-        byte[] encoded = Base64.decodeBase64(privateKeyPEM);
-        KeyFactory kf = KeyFactory.getInstance("RSA");
-        PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(encoded);
-        return (RSAPrivateKey) kf.generatePrivate(keySpec);
+        JcaPEMKeyConverter converter = new JcaPEMKeyConverter().setProvider("BC");
+        return converter.getPrivateKey(pemKeyPair.getPrivateKeyInfo());
     }
 
     private PrivateKeyStrategy produceAPrivateKeyStrategy() {
