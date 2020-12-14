@@ -58,11 +58,19 @@ public class RestClientConfiguration {
         }
     }
 
+    public void setFromProperties(Properties properties) {
+        loadFromProperties(properties);
+    }
+
     // ----------------------------------------------------------------------------------------------------
 
     private void loadFromPropertiesInputStream(InputStream inputStream) throws IOException {
         Properties properties = new Properties();
         properties.load(inputStream);
+        loadFromProperties(properties);
+    }
+
+    private void loadFromProperties(Properties properties) {
         clientKeyFile = getNotNull(properties, "client.auth.keyFile");
         clientKeyPassword = getNotNull(properties, "client.auth.keyPassword");
         clientCertificateFile = getNotNull(properties, "client.cert.file");

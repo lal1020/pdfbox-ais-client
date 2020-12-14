@@ -7,6 +7,10 @@ import java.util.List;
 
 public interface AisClient extends Closeable {
 
+    void signDocumentsWithStaticCertificate(List<PdfDocument> documents);
+
+    void signDocumentsWithOnDemandCertificate(List<PdfDocument> documents);
+
     void timestampDocuments(List<PdfDocument> documents);
 
 }
