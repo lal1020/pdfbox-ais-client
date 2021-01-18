@@ -1,6 +1,6 @@
 package com.swisscom.ais.client.model;
 
-public class PdfDocument {
+public class PdfHandle {
 
     private String inputFromFile;
 

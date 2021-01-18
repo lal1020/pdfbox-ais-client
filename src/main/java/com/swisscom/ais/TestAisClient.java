@@ -1,7 +1,7 @@
 package com.swisscom.ais;
 
 import com.swisscom.ais.client.AisClientImpl;
-import com.swisscom.ais.client.model.PdfDocument;
+import com.swisscom.ais.client.model.PdfHandle;
 import com.swisscom.ais.client.rest.RestClientConfiguration;
 import com.swisscom.ais.client.rest.RestClientImpl;
 
@@ -24,7 +24,7 @@ public class TestAisClient {
         aisClient.setRestClient(restClient);
 
         try {
-            PdfDocument document = new PdfDocument();
+            PdfHandle document = new PdfHandle();
             document.setInputFromFile(properties.getProperty("local.test.inputFile"));
             document.setOutputToFile(properties.getProperty("local.test.outputFilePrefix") + System.currentTimeMillis() + ".pdf");
             aisClient.timestampDocuments(Collections.singletonList(document));

@@ -1,16 +1,16 @@
 package com.swisscom.ais.client;
 
-import com.swisscom.ais.client.model.PdfDocument;
+import com.swisscom.ais.client.model.PdfHandle;
 
 import java.io.Closeable;
 import java.util.List;
 
 public interface AisClient extends Closeable {
 
-    void signDocumentsWithStaticCertificate(List<PdfDocument> documents);
+    void signDocumentsWithStaticCertificate(List<PdfHandle> documents);
 
-    void signDocumentsWithOnDemandCertificate(List<PdfDocument> documents);
+    void signDocumentsWithOnDemandCertificate(List<PdfHandle> documents);
 
-    void timestampDocuments(List<PdfDocument> documents);
+    void timestampDocuments(List<PdfHandle> documents);
 
 }

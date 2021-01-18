@@ -1,4 +1,4 @@
-package com.swisscom.ais.client.rest;
+package com.swisscom.ais.client.rest.model;
 
 import com.swisscom.ais.client.CoreValues;
 import com.swisscom.ais.client.SignatureConfig;
@@ -7,23 +7,24 @@ import com.swisscom.ais.client.rest.model.pendingreq.AsyncPendingRequest;
 import com.swisscom.ais.client.rest.model.signreq.*;
 import com.swisscom.ais.client.utils.Utils;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 public class ModelBuilder {
 
-    public static AISSignRequest buildAisSignRequest(String digestAlgorithm,
-                                                     String digestContent,
+    public static AISSignRequest buildAisSignRequest(List<PdfDocument> documents,
                                                      String signatureType) {
         // Input documents --------------------------------------------------------------------------------
-        // TODO this only allows one input document to be specified
-        DocumentHash documentHash = new DocumentHash();
-        documentHash.setId(Utils.generateDocumentId());
-        documentHash.setDsigDigestMethod(new DsigDigestMethod().withAlgorithm(digestAlgorithm));
-        // TODO change this to support multiple document digest inputs
-        documentHash.setDsigDigestValue(digestContent);
-
+        List<DocumentHash> documentHashes = new ArrayList<>();
+        for (PdfDocument document : documents) {
+            DocumentHash newDocumentHash = new DocumentHash();
+            newDocumentHash.setId(document.getId());
+            newDocumentHash.setDsigDigestMethod(new DsigDigestMethod().withAlgorithm(document.getDigestAlgorithm().getDigestUri()));
+            newDocumentHash.setDsigDigestValue(document.getBase64HashToSign());
+        }
         InputDocuments inputDocuments = new InputDocuments();
-        inputDocuments.setDocumentHash(documentHash);
+        inputDocuments.setDocumentHash(documentHashes);
 
         // Optional inputs --------------------------------------------------------------------------------
 //        AddTimestamp addTimestamp = new AddTimestamp();

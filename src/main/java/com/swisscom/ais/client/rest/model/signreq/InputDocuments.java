@@ -1,6 +1,8 @@
 
 package com.swisscom.ais.client.rest.model.signreq;
 
+import java.util.ArrayList;
+import java.util.List;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
@@ -12,19 +14,19 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 public class InputDocuments {
 
     @JsonProperty("DocumentHash")
-    private DocumentHash documentHash;
+    private List<DocumentHash> documentHash = new ArrayList<DocumentHash>();
 
     @JsonProperty("DocumentHash")
-    public DocumentHash getDocumentHash() {
+    public List<DocumentHash> getDocumentHash() {
         return documentHash;
     }
 
     @JsonProperty("DocumentHash")
-    public void setDocumentHash(DocumentHash documentHash) {
+    public void setDocumentHash(List<DocumentHash> documentHash) {
         this.documentHash = documentHash;
     }
 
-    public InputDocuments withDocumentHash(DocumentHash documentHash) {
+    public InputDocuments withDocumentHash(List<DocumentHash> documentHash) {
         this.documentHash = documentHash;
         return this;
     }

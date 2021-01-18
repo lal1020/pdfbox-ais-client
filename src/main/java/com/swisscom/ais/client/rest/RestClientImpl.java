@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.swisscom.ais.client.AisClient;
 import com.swisscom.ais.client.CoreValues;
 import com.swisscom.ais.client.SignatureConfig;
+import com.swisscom.ais.client.rest.model.ModelBuilder;
 import com.swisscom.ais.client.rest.model.pendingreq.AISPendingRequest;
 import com.swisscom.ais.client.rest.model.signreq.AISSignRequest;
 import com.swisscom.ais.client.rest.model.signresp.AISSignResponse;
