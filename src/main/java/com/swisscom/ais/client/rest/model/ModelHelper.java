@@ -1,20 +1,24 @@
 package com.swisscom.ais.client.rest.model;
 
-import com.swisscom.ais.client.CoreValues;
-import com.swisscom.ais.client.SignatureConfig;
+import com.swisscom.ais.client.model.UserData;
 import com.swisscom.ais.client.rest.model.pendingreq.AISPendingRequest;
 import com.swisscom.ais.client.rest.model.pendingreq.AsyncPendingRequest;
 import com.swisscom.ais.client.rest.model.signreq.*;
 import com.swisscom.ais.client.utils.Utils;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
-public class ModelBuilder {
+public class ModelHelper {
+
+    private static final String SWISSCOM_BASIC_PROFILE = "http://ais.swisscom.ch/1.1";
 
     public static AISSignRequest buildAisSignRequest(List<PdfDocument> documents,
-                                                     String signatureType) {
+                                                     SignatureType signatureType,
+                                                     UserData userData,
+                                                     List<AdditionalProfile> additionalProfiles,
+                                                     boolean withStepUp) {
         // Input documents --------------------------------------------------------------------------------
         List<DocumentHash> documentHashes = new ArrayList<>();
         for (PdfDocument document : documents) {
@@ -22,6 +26,7 @@ public class ModelBuilder {
             newDocumentHash.setId(document.getId());
             newDocumentHash.setDsigDigestMethod(new DsigDigestMethod().withAlgorithm(document.getDigestAlgorithm().getDigestUri()));
             newDocumentHash.setDsigDigestValue(document.getBase64HashToSign());
+            documentHashes.add(newDocumentHash);
         }
         InputDocuments inputDocuments = new InputDocuments();
         inputDocuments.setDocumentHash(documentHashes);
@@ -31,32 +36,35 @@ public class ModelBuilder {
 //        addTimestamp.setType(CoreValues.TIMESTAMP_TYPE_RFC_3161); // TODO
 
         ClaimedIdentity claimedIdentity = new ClaimedIdentity();
-        claimedIdentity.setName("ais-90days-trial-withRAservice");
+        claimedIdentity.setName(userData.getClaimedIdentityName());
 
-//        ScPhone phone = new ScPhone();
-//        phone.setScLanguage(config.getPromptLanguage());
-//        phone.setScMSISDN(config.getPromptMsisdn());
-//        phone.setScMessage(config.getPromptMessage());
+        ScCertificateRequest certificateRequest = null;
+        if (withStepUp) {
+            ScPhone phone = new ScPhone();
+            phone.setScLanguage(userData.getPromptLanguage());
+            phone.setScMSISDN(userData.getPromptMsisdn());
+            phone.setScMessage(userData.getPromptMessage());
 
-//        ScStepUpAuthorisation stepUpAuthorisation = new ScStepUpAuthorisation();
-//        stepUpAuthorisation.setScPhone(phone);
+            ScStepUpAuthorisation stepUpAuthorisation = new ScStepUpAuthorisation();
+            stepUpAuthorisation.setScPhone(phone);
 
-//        ScCertificateRequest certificateRequest = new ScCertificateRequest();
-//        certificateRequest.setScDistinguishedName(config.getDistinguishedName());
-//        certificateRequest.setScStepUpAuthorisation(stepUpAuthorisation);
+            certificateRequest = new ScCertificateRequest();
+            certificateRequest.setScDistinguishedName(userData.getDistinguishedName());
+            certificateRequest.setScStepUpAuthorisation(stepUpAuthorisation);
+        }
 
         OptionalInputs optionalInputs = new OptionalInputs();
 //        optionalInputs.setAddTimestamp(addTimestamp);
-        optionalInputs.setAdditionalProfile(Arrays.asList("urn:oasis:names:tc:dss:1.0:profiles:timestamping"));
+        optionalInputs.setAdditionalProfile(additionalProfiles.stream().map(AdditionalProfile::getUri).collect(Collectors.toList()));
         optionalInputs.setClaimedIdentity(claimedIdentity);
-        optionalInputs.setSignatureType(signatureType); // TODO
-        optionalInputs.setScAddRevocationInformation(""); // TODO
-//        optionalInputs.setScCertificateRequest(certificateRequest);
+        optionalInputs.setSignatureType(signatureType.getUri());
+//        optionalInputs.setScAddRevocationInformation("");
+        optionalInputs.setScCertificateRequest(certificateRequest);
 
         // Sign request --------------------------------------------------------------------------------
         SignRequest request = new SignRequest();
         request.setRequestID(Utils.generateRequestId());
-        request.setProfile(CoreValues.SWISSCOM_BASIC_PROFILE);
+        request.setProfile(SWISSCOM_BASIC_PROFILE);
         request.setInputDocuments(inputDocuments);
         request.setOptionalInputs(optionalInputs);
 
@@ -65,10 +73,10 @@ public class ModelBuilder {
         return requestWrapper;
     }
 
-    public static AISPendingRequest buildAisPendingRequest(SignatureConfig config, String responseId) {
+    public static AISPendingRequest buildAisPendingRequest(String responseId, UserData userData) {
         com.swisscom.ais.client.rest.model.pendingreq.ClaimedIdentity claimedIdentity =
             new com.swisscom.ais.client.rest.model.pendingreq.ClaimedIdentity();
-        claimedIdentity.setName(config.getClaimedIdentityName());
+        claimedIdentity.setName(userData.getClaimedIdentityName());
 
         com.swisscom.ais.client.rest.model.pendingreq.OptionalInputs optionalInputs =
             new com.swisscom.ais.client.rest.model.pendingreq.OptionalInputs();
@@ -76,7 +84,7 @@ public class ModelBuilder {
         optionalInputs.setClaimedIdentity(claimedIdentity);
 
         AsyncPendingRequest request = new AsyncPendingRequest();
-        request.setProfile(CoreValues.SWISSCOM_BASIC_PROFILE);
+        request.setProfile(SWISSCOM_BASIC_PROFILE);
         request.setOptionalInputs(optionalInputs);
 
         AISPendingRequest requestWrapper = new AISPendingRequest();

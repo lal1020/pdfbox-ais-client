@@ -2,13 +2,14 @@ package com.swisscom.ais;
 
 import com.swisscom.ais.client.AisClientImpl;
 import com.swisscom.ais.client.model.PdfHandle;
+import com.swisscom.ais.client.model.UserData;
 import com.swisscom.ais.client.rest.RestClientConfiguration;
 import com.swisscom.ais.client.rest.RestClientImpl;
 
 import java.util.Collections;
 import java.util.Properties;
 
-public class TestAisClient {
+public class TestOnDemandSignatureWithStepUp {
 
     public static void main(String[] args) throws Exception {
         Properties properties = new Properties();
@@ -20,16 +21,14 @@ public class TestAisClient {
         RestClientImpl restClient = new RestClientImpl();
         restClient.setConfiguration(config);
 
-        AisClientImpl aisClient = new AisClientImpl();
-        aisClient.setRestClient(restClient);
+        try (AisClientImpl aisClient = new AisClientImpl(restClient)) {
+            UserData userData = new UserData();
+            userData.setFromProperties(properties);
 
-        try {
             PdfHandle document = new PdfHandle();
             document.setInputFromFile(properties.getProperty("local.test.inputFile"));
             document.setOutputToFile(properties.getProperty("local.test.outputFilePrefix") + System.currentTimeMillis() + ".pdf");
-            aisClient.timestampDocuments(Collections.singletonList(document));
-        } finally {
-            aisClient.close();
+            aisClient.signDocumentsWithOnDemandCertificate(Collections.singletonList(document), userData);
         }
     }
 

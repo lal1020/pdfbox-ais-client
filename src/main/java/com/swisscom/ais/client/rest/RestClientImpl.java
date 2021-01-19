@@ -3,9 +3,6 @@ package com.swisscom.ais.client.rest;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.swisscom.ais.client.AisClient;
-import com.swisscom.ais.client.CoreValues;
-import com.swisscom.ais.client.SignatureConfig;
-import com.swisscom.ais.client.rest.model.ModelBuilder;
 import com.swisscom.ais.client.rest.model.pendingreq.AISPendingRequest;
 import com.swisscom.ais.client.rest.model.signreq.AISSignRequest;
 import com.swisscom.ais.client.rest.model.signresp.AISSignResponse;
@@ -61,12 +58,14 @@ public class RestClientImpl implements RestClient {
 
     private static final Logger log = LoggerFactory.getLogger(AisClient.class);
 
+    private RestClientConfiguration config;
     private ObjectMapper jacksonMapper;
     private CloseableHttpClient httpClient;
 
     // ----------------------------------------------------------------------------------------------------
 
     public void setConfiguration(RestClientConfiguration config) {
+        this.config = config;
         Security.addProvider(new BouncyCastleProvider());
         jacksonMapper = new ObjectMapper();
 
@@ -108,14 +107,13 @@ public class RestClientImpl implements RestClient {
 
     @Override
     public AISSignResponse requestSignature(AISSignRequest requestWrapper) {
-        return sendAndReceive("SignRequest", CoreValues.AIS_REST_SIGN_URL,
+        return sendAndReceive("SignRequest", config.getRestServiceSignUrl(),
                               requestWrapper, AISSignResponse.class);
     }
 
     @Override
-    public AISSignResponse pollForSignatureStatus(SignatureConfig config, String responseId) {
-        AISPendingRequest requestWrapper = ModelBuilder.buildAisPendingRequest(config, responseId);
-        return sendAndReceive("PendingRequest", CoreValues.AIS_REST_PENDING_URL,
+    public AISSignResponse pollForSignatureStatus(AISPendingRequest requestWrapper) {
+        return sendAndReceive("PendingRequest", config.getRestServicePendingUrl(),
                               requestWrapper, AISSignResponse.class);
     }
 

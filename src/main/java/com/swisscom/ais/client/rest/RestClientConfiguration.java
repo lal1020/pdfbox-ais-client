@@ -8,6 +8,9 @@ import static com.swisscom.ais.client.utils.Utils.getNotNull;
 
 public class RestClientConfiguration {
 
+    private String restServiceSignUrl = "https://ais.swisscom.com/AIS-Server/rs/v1.0/sign";
+    private String restServicePendingUrl = "https://ais.swisscom.com/AIS-Server/rs/v1.0/pending";
+
     private String clientKeyFile;
     private String clientKeyPassword;
 
@@ -48,6 +51,22 @@ public class RestClientConfiguration {
         this.serverCertificateFile = serverCertificateFile;
     }
 
+    public String getRestServiceSignUrl() {
+        return restServiceSignUrl;
+    }
+
+    public void setRestServiceSignUrl(String restServiceSignUrl) {
+        this.restServiceSignUrl = restServiceSignUrl;
+    }
+
+    public String getRestServicePendingUrl() {
+        return restServicePendingUrl;
+    }
+
+    public void setRestServicePendingUrl(String restServicePendingUrl) {
+        this.restServicePendingUrl = restServicePendingUrl;
+    }
+
     // ----------------------------------------------------------------------------------------------------
 
     public void setFromPropertiesClasspathFile(String fileName) {
@@ -71,6 +90,8 @@ public class RestClientConfiguration {
     }
 
     private void loadFromProperties(Properties properties) {
+        restServiceSignUrl = getNotNull(properties, "server.rest.signUrl");
+        restServicePendingUrl = getNotNull(properties, "server.rest.pendingUrl");
         clientKeyFile = getNotNull(properties, "client.auth.keyFile");
         clientKeyPassword = getNotNull(properties, "client.auth.keyPassword");
         clientCertificateFile = getNotNull(properties, "client.cert.file");

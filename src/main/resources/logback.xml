@@ -13,7 +13,7 @@
         <appender-ref ref="Console"/>
     </root>
 
-    <logger name="org.apache.hc" level="debug"/>
     <logger name="com.swisscom.ais.client" level="debug"/>
+    <logger name="org.apache.hc" level="warn"/>
 
 </configuration>

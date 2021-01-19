@@ -1,25 +1,21 @@
-package com.swisscom.ais.client;
+package com.swisscom.ais.client.model;
+
+import com.swisscom.ais.client.AisClientException;
 
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.Properties;
 
 import static com.swisscom.ais.client.utils.Utils.getNotNull;
-import static com.swisscom.ais.client.utils.Utils.getStringArray;
 
-public class SignatureConfig {
+public class UserData {
 
     private String claimedIdentityName;
     private String distinguishedName;
-    private String documentDigest;
-    private String documentDigestAlgorithm;
 
     private String promptLanguage;
     private String promptMsisdn;
     private String promptMessage;
-
-    private String[] additionalProfiles;
 
     // ----------------------------------------------------------------------------------------------------
 
@@ -29,22 +25,6 @@ public class SignatureConfig {
 
     public void setClaimedIdentityName(String claimedIdentityName) {
         this.claimedIdentityName = claimedIdentityName;
-    }
-
-    public String getDocumentDigest() {
-        return documentDigest;
-    }
-
-    public void setDocumentDigest(String documentDigest) {
-        this.documentDigest = documentDigest;
-    }
-
-    public String getDocumentDigestAlgorithm() {
-        return documentDigestAlgorithm;
-    }
-
-    public void setDocumentDigestAlgorithm(String documentDigestAlgorithm) {
-        this.documentDigestAlgorithm = documentDigestAlgorithm;
     }
 
     public String getPromptLanguage() {
@@ -79,45 +59,34 @@ public class SignatureConfig {
         this.distinguishedName = distinguishedName;
     }
 
-    public String[] getAdditionalProfiles() {
-        return additionalProfiles;
-    }
-
-    public void setAdditionalProfiles(String[] additionalProfiles) {
-        this.additionalProfiles = additionalProfiles;
-    }
-
     // ----------------------------------------------------------------------------------------------------
 
-    public void loadFromPropertiesClasspathFile(String fileName) {
+    public void setFromPropertiesClasspathFile(String fileName) {
         try {
-            loadFromPropertiesInputStream(this.getClass().getResourceAsStream(fileName));
+            Properties properties = new Properties();
+            properties.load(this.getClass().getResourceAsStream(fileName));
+            setFromProperties(properties);
         } catch (IOException exception) {
-            throw new RuntimeException(exception);
+            throw new AisClientException("Failed to load user data properties from classpath file: [" + fileName + "]", exception);
         }
     }
 
-    public void loadFromPropertiesFile(String fileName) {
+    public void setFromPropertiesFile(String fileName) {
         try {
-            loadFromPropertiesInputStream(new FileInputStream(fileName));
+            Properties properties = new Properties();
+            properties.load(new FileInputStream(fileName));
+            setFromProperties(properties);
         } catch (IOException exception) {
-            throw new RuntimeException(exception);
+            throw new AisClientException("Failed to load user data properties from file: [" + fileName + "]", exception);
         }
     }
 
-    // ----------------------------------------------------------------------------------------------------
-
-    private void loadFromPropertiesInputStream(InputStream inputStream) throws IOException {
-        Properties properties = new Properties();
-        properties.load(inputStream);
+    public void setFromProperties(Properties properties) {
         claimedIdentityName = getNotNull(properties, "signature.claimedIdentityName");
-        documentDigest = getNotNull(properties, "document.digest");
-        documentDigestAlgorithm = getNotNull(properties, "document.digestAlgorithm");
         promptLanguage = getNotNull(properties, "signature.prompt.language");
         promptMsisdn = getNotNull(properties, "signature.prompt.msisdn");
         promptMessage = getNotNull(properties, "signature.prompt.message");
         distinguishedName = getNotNull(properties, "signature.distinguishedName");
-        additionalProfiles = getStringArray(getNotNull(properties, "signature.additionalProfilesCsv"));
     }
 
 }
