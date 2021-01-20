@@ -13,12 +13,26 @@ public class Utils {
         return "DOC-" + System.currentTimeMillis();
     }
 
-    public static String getNotNull(Properties properties, String propertyName) {
+    public static String getStringNotNull(Properties properties, String propertyName) {
         String value = properties.getProperty(propertyName);
         if (value == null) {
             throw new IllegalStateException("Invalid configuration. The [" + propertyName + "] is missing or is empty");
         }
         return value;
+    }
+
+    public static int getIntNotNull(Properties properties, String propertyName) {
+        String value = properties.getProperty(propertyName);
+        if (value == null) {
+            throw new IllegalStateException("Invalid configuration. The [" + propertyName + "] is missing or is empty");
+        }
+        return Integer.parseInt(value);
+    }
+
+    public static String stripInnerLargeBase64Content(String source, char leftBoundChar, char rightBoundChar) {
+        String pattern = leftBoundChar + "[A-Za-z0-9+/=_-]{1000,}" + rightBoundChar;
+        String replacement = leftBoundChar + "..." + rightBoundChar;
+        return source.replaceAll(pattern, replacement);
     }
 
 }

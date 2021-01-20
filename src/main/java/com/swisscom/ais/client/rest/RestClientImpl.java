@@ -1,11 +1,15 @@
 package com.swisscom.ais.client.rest;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.swisscom.ais.client.AisClient;
+import com.swisscom.ais.client.AisClientException;
 import com.swisscom.ais.client.rest.model.pendingreq.AISPendingRequest;
 import com.swisscom.ais.client.rest.model.signreq.AISSignRequest;
 import com.swisscom.ais.client.rest.model.signresp.AISSignResponse;
+import com.swisscom.ais.client.utils.Loggers;
+import com.swisscom.ais.client.utils.Trace;
+import com.swisscom.ais.client.utils.Utils;
 
 import org.apache.commons.codec.CharEncoding;
 import org.apache.hc.client5.http.classic.methods.HttpPost;
@@ -49,14 +53,10 @@ import javax.net.ssl.SSLException;
 
 public class RestClientImpl implements RestClient {
 
-    private static final int CLIENT_MAX_CONNECTION_TOTAL = 20;
-    private static final int CLIENT_MAX_CONNECTIONS_PER_ROUTE = 10;
-    private static final int CLIENT_SOCKET_TIMEOUT_IN_MS = 10000; // 10s
-    private static final int CLIENT_RESPONSE_TIMEOUT_IN_MS = 20000; // 20s
-
-    // ----------------------------------------------------------------------------------------------------
-
-    private static final Logger log = LoggerFactory.getLogger(AisClient.class);
+    private static final Logger logClient = LoggerFactory.getLogger(Loggers.CLIENT);
+    private static final Logger logProtocol = LoggerFactory.getLogger(Loggers.CLIENT_PROTOCOL);
+    private static final Logger logReqResp = LoggerFactory.getLogger(Loggers.REQUEST_RESPONSE);
+    private static final Logger logFullReqResp = LoggerFactory.getLogger(Loggers.FULL_REQUEST_RESPONSE);
 
     private RestClientConfiguration config;
     private ObjectMapper jacksonMapper;
@@ -68,6 +68,7 @@ public class RestClientImpl implements RestClient {
         this.config = config;
         Security.addProvider(new BouncyCastleProvider());
         jacksonMapper = new ObjectMapper();
+        jacksonMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
         SSLConnectionSocketFactory sslConnectionSocketFactory;
         try {
@@ -77,17 +78,17 @@ public class RestClientImpl implements RestClient {
             sslContextBuilder.loadTrustMaterial(produceTheTrustStore(config), null);
             sslConnectionSocketFactory = new SSLConnectionSocketFactory(sslContextBuilder.build());
         } catch (Exception e) {
-            throw new RuntimeException("Failed to configure the TLS/SSL connection factory for the AIS client", e);
+            throw new AisClientException("Failed to configure the TLS/SSL connection factory for the AIS client", e);
         }
 
         PoolingHttpClientConnectionManager connectionManager = PoolingHttpClientConnectionManagerBuilder.create()
-            .setMaxConnTotal(CLIENT_MAX_CONNECTION_TOTAL)
-            .setMaxConnPerRoute(CLIENT_MAX_CONNECTIONS_PER_ROUTE)
+            .setMaxConnTotal(config.getMaxTotalConnections())
+            .setMaxConnPerRoute(config.getMaxConnectionsPerRoute())
             .setSSLSocketFactory(sslConnectionSocketFactory)
             .build();
         RequestConfig httpClientRequestConfig = RequestConfig.custom()
-            .setConnectTimeout(CLIENT_SOCKET_TIMEOUT_IN_MS, TimeUnit.MILLISECONDS)
-            .setResponseTimeout(CLIENT_RESPONSE_TIMEOUT_IN_MS, TimeUnit.MILLISECONDS)
+            .setConnectTimeout(config.getConnectionTimeoutInSec(), TimeUnit.SECONDS)
+            .setResponseTimeout(config.getResponseTimeoutInSec(), TimeUnit.SECONDS)
             .build();
 
         httpClient = HttpClients.custom()
@@ -98,7 +99,9 @@ public class RestClientImpl implements RestClient {
 
     @Override
     public void close() throws IOException {
+        logClient.info("Closing the REST client");
         if (httpClient != null) {
+            logClient.info("Closing the embedded HTTP client");
             httpClient.close();
         }
     }
@@ -106,15 +109,15 @@ public class RestClientImpl implements RestClient {
     // ----------------------------------------------------------------------------------------------------
 
     @Override
-    public AISSignResponse requestSignature(AISSignRequest requestWrapper) {
+    public AISSignResponse requestSignature(AISSignRequest requestWrapper, Trace trace) {
         return sendAndReceive("SignRequest", config.getRestServiceSignUrl(),
-                              requestWrapper, AISSignResponse.class);
+                              requestWrapper, AISSignResponse.class, trace);
     }
 
     @Override
-    public AISSignResponse pollForSignatureStatus(AISPendingRequest requestWrapper) {
+    public AISSignResponse pollForSignatureStatus(AISPendingRequest requestWrapper, Trace trace) {
         return sendAndReceive("PendingRequest", config.getRestServicePendingUrl(),
-                              requestWrapper, AISSignResponse.class);
+                              requestWrapper, AISSignResponse.class, trace);
     }
 
     // ----------------------------------------------------------------------------------------------------
@@ -122,53 +125,60 @@ public class RestClientImpl implements RestClient {
     private <TReq, TResp> TResp sendAndReceive(String operationName,
                                                String serviceUrl,
                                                TReq requestObject,
-                                               Class<TResp> responseClass) {
-        log.debug("{}: Serializing object of type {} to JSON", operationName, requestObject.getClass().getSimpleName());
+                                               @SuppressWarnings("SameParameterValue") Class<TResp> responseClass,
+                                               Trace trace) {
+        logProtocol.debug("{}: Serializing object of type {} to JSON - {}",
+                          operationName, requestObject.getClass().getSimpleName(), trace.getId());
         String requestJson;
         try {
             requestJson = jacksonMapper.writeValueAsString(requestObject);
         } catch (JsonProcessingException e) {
-            throw new RuntimeException("Failed to serialize request object to JSON, for operation " + operationName, e);
+            throw new AisClientException("Failed to serialize request object to JSON, for operation " +
+                                         operationName + " - " + trace.getId(), e);
         }
 
         HttpPost httpPost = new HttpPost(serviceUrl);
         httpPost.setEntity(new StringEntity(requestJson, ContentType.APPLICATION_JSON, CharEncoding.UTF_8, false));
         httpPost.setHeader(HttpHeaders.ACCEPT, ContentType.APPLICATION_JSON);
-        log.info("{}: Sending request to: [{}]", operationName, serviceUrl);
-        log.debug("{}: Sending JSON to: [{}], content: [{}]", operationName, serviceUrl, requestJson);
+        logProtocol.info("{}: Sending request to: [{}] - {}", operationName, serviceUrl, trace.getId());
+        logReqResp.info("{}: Sending JSON to: [{}], content: [{}] - {}", operationName, serviceUrl, requestJson, trace.getId());
+        logFullReqResp.info("{}: Sending JSON to: [{}], content: [{}] - {}", operationName, serviceUrl, requestJson, trace.getId());
 
         try (CloseableHttpResponse response = httpClient.execute(httpPost)) {
-            log.info("{}: Received HTTP status code: {}", operationName, response.getCode());
+            logProtocol.info("{}: Received HTTP status code: {} - {}", operationName, response.getCode(), trace.getId());
             String responseJson;
             try {
                 responseJson = EntityUtils.toString(response.getEntity());
             } catch (ParseException e) {
-                throw new RuntimeException("Failed to interpret the HTTP response content as a string, for operation " + operationName, e);
+                throw new AisClientException("Failed to interpret the HTTP response content as a string, for operation " +
+                                             operationName + " - " + trace.getId(), e);
             }
             if (response.getCode() == 200) {
-                log.debug("{}: Received JSON content: {}", operationName, responseJson);
-                log.debug("{}: Deserializing JSON to object of type {}", operationName, responseClass.getSimpleName());
+                if (logReqResp.isInfoEnabled()) {
+                    String strippedResponse = Utils.stripInnerLargeBase64Content(responseJson, '"', '"');
+                    logReqResp.info("{}: Received JSON content: {} - {}", operationName, strippedResponse, trace.getId());
+                }
+                if (logFullReqResp.isInfoEnabled()) {
+                    logFullReqResp.info("{}: Received JSON content: {} - {}", operationName, responseJson, trace.getId());
+                }
+                logProtocol.debug("{}: Deserializing JSON to object of type {} - {}", operationName, responseClass.getSimpleName(), trace.getId());
                 try {
                     return jacksonMapper.readValue(responseJson, responseClass);
                 } catch (JsonProcessingException e) {
-                    throw new RuntimeException("Failed to deserialize JSON content to object of type " +
-                                               responseClass.getSimpleName() + " for operation " + operationName, e);
+                    throw new AisClientException("Failed to deserialize JSON content to object of type " +
+                                                 responseClass.getSimpleName() + " for operation " +
+                                                 operationName + " - " +
+                                                 trace.getId(), e);
                 }
             } else {
-                throw new RuntimeException("Received fault response");
-//                logProtocol.debug("{}: Deserializing JSON to object of type {}", operationName, MSSFault.class.getSimpleName());
-//                try {
-//                    faultWrapper = jacksonMapper.readValue(responseJson, MSSFault.class);
-//                } catch (JsonProcessingException e) {
-//                    throw new MIDFlowException("Failed to deserialize JSON content to object of type " +
-//                                               MSSFault.class.getSimpleName() + " for operation " + operationName,
-//                                               e, faultProcessor.processException(e, FailureReason.RESPONSE_PARSING_FAILURE));
-//                }
+                throw new AisClientException("Received fault response: HTTP " +
+                                             response.getCode() + " " +
+                                             response.getReasonPhrase() + " - " + trace.getId());
             }
         } catch (SSLException e) {
-            throw new RuntimeException("TLS/SSL connection failure for " + operationName, e);
+            throw new AisClientException("TLS/SSL connection failure for " + operationName + " - " + trace.getId(), e);
         } catch (Exception e) {
-            throw new RuntimeException("Communication failure for " + operationName, e);
+            throw new AisClientException("Communication failure for " + operationName + " - " + trace.getId(), e);
         }
     }
 
@@ -188,7 +198,7 @@ public class RestClientImpl implements RestClient {
 
             return keyStore;
         } catch (Exception e) {
-            throw new RuntimeException("Failed to initialize the TLS keystore", e);
+            throw new AisClientException("Failed to initialize the TLS keystore", e);
         }
     }
 
@@ -204,7 +214,7 @@ public class RestClientImpl implements RestClient {
 
             return keyStore;
         } catch (Exception e) {
-            throw new RuntimeException("Failed to initialize the TLS truststore", e);
+            throw new AisClientException("Failed to initialize the TLS truststore", e);
         }
     }
 

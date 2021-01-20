@@ -5,10 +5,10 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.swisscom.ais</groupId>
-    <artifactId>ais-pdfbox</artifactId>
+    <artifactId>pdfbox-ais</artifactId>
     <version>0.0.1</version>
     <packaging>jar</packaging>
-    <name>ais-pdfbox</name>
+    <name>pdfbox-ais</name>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

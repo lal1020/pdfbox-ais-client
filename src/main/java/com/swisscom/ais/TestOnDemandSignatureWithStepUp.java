@@ -24,6 +24,8 @@ public class TestOnDemandSignatureWithStepUp {
         try (AisClientImpl aisClient = new AisClientImpl(restClient)) {
             UserData userData = new UserData();
             userData.setFromProperties(properties);
+            userData.setTransactionIdToRandomUuid();
+            userData.setConsentUrlCallback((consentUrl, userData1) -> System.out.println("Consent URL: " + consentUrl));
 
             PdfHandle document = new PdfHandle();
             document.setInputFromFile(properties.getProperty("local.test.inputFile"));

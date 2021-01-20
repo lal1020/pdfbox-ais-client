@@ -12,10 +12,11 @@
         },
         "OptionalOutputs": {
             "async.ResponseID": "RESPONSE_ID",
+            "sc.APTransID": "ID-abcdabcd-abcd-4ba5-9a9d-d9589b006e1b",
             "sc.StepUpAuthorisationInfo": {
                 "sc.Result": {
                     "sc.SerialNumber": "UNIQUE_SERIAL_NUMBER",
-                    "sc.ConsentURL":"CONSENT_URL",
+                    "sc.ConsentURL": "CONSENT_URL",
                     "sc.MobileIDFault": {
                         "sc.Subcode": "mss:_404",
                         "sc.Reason": "NO_KEY_FOUND",
@@ -38,6 +39,13 @@
             }
         },
         "SignatureObject": {
+            "Base64Signature": {
+                "$": "SIGNATURE_RESPONSE",
+                "@Type": "urn:ietf:rfc:3369"
+            },
+            "Timestamp": {
+                "RFC3161TimeStampToken": "MIIwg....=="
+            },
             "Other": {
                 "sc.SignatureObjects": {
                     "sc.ExtendedSignatureObject": [
@@ -57,9 +65,6 @@
                         }
                     ]
                 }
-            },
-            "Timestamp": {
-                "RFC3161TimeStampToken": "MIIwg....=="
             }
         }
     }

@@ -8,6 +8,7 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonPropertyOrder({
     "async.ResponseID",
+    "sc.APTransID",
     "sc.StepUpAuthorisationInfo",
     "sc.RevocationInformation"
 })
@@ -15,6 +16,8 @@ public class OptionalOutputs {
 
     @JsonProperty("async.ResponseID")
     private String asyncResponseID;
+    @JsonProperty("sc.APTransID")
+    private String scAPTransID;
     @JsonProperty("sc.StepUpAuthorisationInfo")
     private ScStepUpAuthorisationInfo scStepUpAuthorisationInfo;
     @JsonProperty("sc.RevocationInformation")
@@ -32,6 +35,21 @@ public class OptionalOutputs {
 
     public OptionalOutputs withAsyncResponseID(String asyncResponseID) {
         this.asyncResponseID = asyncResponseID;
+        return this;
+    }
+
+    @JsonProperty("sc.APTransID")
+    public String getScAPTransID() {
+        return scAPTransID;
+    }
+
+    @JsonProperty("sc.APTransID")
+    public void setScAPTransID(String scAPTransID) {
+        this.scAPTransID = scAPTransID;
+    }
+
+    public OptionalOutputs withScAPTransID(String scAPTransID) {
+        this.scAPTransID = scAPTransID;
         return this;
     }
 
@@ -72,6 +90,10 @@ public class OptionalOutputs {
         sb.append("asyncResponseID");
         sb.append('=');
         sb.append(((this.asyncResponseID == null)?"<null>":this.asyncResponseID));
+        sb.append(',');
+        sb.append("scAPTransID");
+        sb.append('=');
+        sb.append(((this.scAPTransID == null)?"<null>":this.scAPTransID));
         sb.append(',');
         sb.append("scStepUpAuthorisationInfo");
         sb.append('=');

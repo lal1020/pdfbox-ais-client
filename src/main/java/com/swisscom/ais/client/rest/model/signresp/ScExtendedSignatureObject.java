@@ -15,7 +15,7 @@ public class ScExtendedSignatureObject {
     @JsonProperty("@WhichDocument")
     private String whichDocument;
     @JsonProperty("Base64Signature")
-    private Base64Signature base64Signature;
+    private Base64Signature__1 base64Signature;
 
     @JsonProperty("@WhichDocument")
     public String getWhichDocument() {
@@ -33,16 +33,16 @@ public class ScExtendedSignatureObject {
     }
 
     @JsonProperty("Base64Signature")
-    public Base64Signature getBase64Signature() {
+    public Base64Signature__1 getBase64Signature() {
         return base64Signature;
     }
 
     @JsonProperty("Base64Signature")
-    public void setBase64Signature(Base64Signature base64Signature) {
+    public void setBase64Signature(Base64Signature__1 base64Signature) {
         this.base64Signature = base64Signature;
     }
 
-    public ScExtendedSignatureObject withBase64Signature(Base64Signature base64Signature) {
+    public ScExtendedSignatureObject withBase64Signature(Base64Signature__1 base64Signature) {
         this.base64Signature = base64Signature;
         return this;
     }

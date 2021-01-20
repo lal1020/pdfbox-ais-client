@@ -7,28 +7,31 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonPropertyOrder({
-    "Other",
-    "Timestamp"
+    "Base64Signature",
+    "Timestamp",
+    "Other"
 })
 public class SignatureObject {
 
-    @JsonProperty("Other")
-    private Other other;
+    @JsonProperty("Base64Signature")
+    private Base64Signature base64Signature;
     @JsonProperty("Timestamp")
     private Timestamp timestamp;
-
     @JsonProperty("Other")
-    public Other getOther() {
-        return other;
+    private Other other;
+
+    @JsonProperty("Base64Signature")
+    public Base64Signature getBase64Signature() {
+        return base64Signature;
     }
 
-    @JsonProperty("Other")
-    public void setOther(Other other) {
-        this.other = other;
+    @JsonProperty("Base64Signature")
+    public void setBase64Signature(Base64Signature base64Signature) {
+        this.base64Signature = base64Signature;
     }
 
-    public SignatureObject withOther(Other other) {
-        this.other = other;
+    public SignatureObject withBase64Signature(Base64Signature base64Signature) {
+        this.base64Signature = base64Signature;
         return this;
     }
 
@@ -47,17 +50,36 @@ public class SignatureObject {
         return this;
     }
 
+    @JsonProperty("Other")
+    public Other getOther() {
+        return other;
+    }
+
+    @JsonProperty("Other")
+    public void setOther(Other other) {
+        this.other = other;
+    }
+
+    public SignatureObject withOther(Other other) {
+        this.other = other;
+        return this;
+    }
+
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
         sb.append(SignatureObject.class.getName()).append('@').append(Integer.toHexString(System.identityHashCode(this))).append('[');
-        sb.append("other");
+        sb.append("base64Signature");
         sb.append('=');
-        sb.append(((this.other == null)?"<null>":this.other));
+        sb.append(((this.base64Signature == null)?"<null>":this.base64Signature));
         sb.append(',');
         sb.append("timestamp");
         sb.append('=');
         sb.append(((this.timestamp == null)?"<null>":this.timestamp));
+        sb.append(',');
+        sb.append("other");
+        sb.append('=');
+        sb.append(((this.other == null)?"<null>":this.other));
         sb.append(',');
         if (sb.charAt((sb.length()- 1)) == ',') {
             sb.setCharAt((sb.length()- 1), ']');

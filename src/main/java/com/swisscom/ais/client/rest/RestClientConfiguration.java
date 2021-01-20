@@ -1,12 +1,21 @@
 package com.swisscom.ais.client.rest;
 
+import com.swisscom.ais.client.AisClientException;
+
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.Properties;
 
-import static com.swisscom.ais.client.utils.Utils.getNotNull;
+import static com.swisscom.ais.client.utils.Utils.getIntNotNull;
+import static com.swisscom.ais.client.utils.Utils.getStringNotNull;
 
 public class RestClientConfiguration {
+
+    private static final int CLIENT_MAX_CONNECTION_TOTAL = 20;
+    private static final int CLIENT_MAX_CONNECTIONS_PER_ROUTE = 10;
+    private static final int CLIENT_SOCKET_TIMEOUT_IN_SEC = 10;
+    private static final int CLIENT_RESPONSE_TIMEOUT_IN_SEC = 20;
+
+    // ----------------------------------------------------------------------------------------------------
 
     private String restServiceSignUrl = "https://ais.swisscom.com/AIS-Server/rs/v1.0/sign";
     private String restServicePendingUrl = "https://ais.swisscom.com/AIS-Server/rs/v1.0/pending";
@@ -16,6 +25,11 @@ public class RestClientConfiguration {
 
     private String clientCertificateFile;
     private String serverCertificateFile;
+
+    private int maxTotalConnections = CLIENT_MAX_CONNECTION_TOTAL;
+    private int maxConnectionsPerRoute = CLIENT_MAX_CONNECTIONS_PER_ROUTE;
+    private int connectionTimeoutInSec = CLIENT_SOCKET_TIMEOUT_IN_SEC;
+    private int responseTimeoutInSec = CLIENT_RESPONSE_TIMEOUT_IN_SEC;
 
     // ----------------------------------------------------------------------------------------------------
 
@@ -67,35 +81,62 @@ public class RestClientConfiguration {
         this.restServicePendingUrl = restServicePendingUrl;
     }
 
+    public int getMaxTotalConnections() {
+        return maxTotalConnections;
+    }
+
+    public void setMaxTotalConnections(int maxTotalConnections) {
+        this.maxTotalConnections = maxTotalConnections;
+    }
+
+    public int getMaxConnectionsPerRoute() {
+        return maxConnectionsPerRoute;
+    }
+
+    public void setMaxConnectionsPerRoute(int maxConnectionsPerRoute) {
+        this.maxConnectionsPerRoute = maxConnectionsPerRoute;
+    }
+
+    public int getConnectionTimeoutInSec() {
+        return connectionTimeoutInSec;
+    }
+
+    public void setConnectionTimeoutInSec(int connectionTimeoutInSec) {
+        this.connectionTimeoutInSec = connectionTimeoutInSec;
+    }
+
+    public int getResponseTimeoutInSec() {
+        return responseTimeoutInSec;
+    }
+
+    public void setResponseTimeoutInSec(int responseTimeoutInSec) {
+        this.responseTimeoutInSec = responseTimeoutInSec;
+    }
+
     // ----------------------------------------------------------------------------------------------------
 
     public void setFromPropertiesClasspathFile(String fileName) {
+        Properties properties;
         try {
-            loadFromPropertiesInputStream(this.getClass().getResourceAsStream(fileName));
+            properties = new Properties();
+            properties.load(this.getClass().getResourceAsStream(fileName));
         } catch (IOException exception) {
-            throw new RuntimeException(exception);
+            throw new AisClientException("Failed to load REST client properties from classpath file: [" + fileName + "]", exception);
         }
+        setFromProperties(properties);
     }
 
     public void setFromProperties(Properties properties) {
-        loadFromProperties(properties);
-    }
-
-    // ----------------------------------------------------------------------------------------------------
-
-    private void loadFromPropertiesInputStream(InputStream inputStream) throws IOException {
-        Properties properties = new Properties();
-        properties.load(inputStream);
-        loadFromProperties(properties);
-    }
-
-    private void loadFromProperties(Properties properties) {
-        restServiceSignUrl = getNotNull(properties, "server.rest.signUrl");
-        restServicePendingUrl = getNotNull(properties, "server.rest.pendingUrl");
-        clientKeyFile = getNotNull(properties, "client.auth.keyFile");
-        clientKeyPassword = getNotNull(properties, "client.auth.keyPassword");
-        clientCertificateFile = getNotNull(properties, "client.cert.file");
-        serverCertificateFile = getNotNull(properties, "server.cert.file");
+        restServiceSignUrl = getStringNotNull(properties, "server.rest.signUrl");
+        restServicePendingUrl = getStringNotNull(properties, "server.rest.pendingUrl");
+        clientKeyFile = getStringNotNull(properties, "client.auth.keyFile");
+        clientKeyPassword = getStringNotNull(properties, "client.auth.keyPassword");
+        clientCertificateFile = getStringNotNull(properties, "client.cert.file");
+        serverCertificateFile = getStringNotNull(properties, "server.cert.file");
+        maxTotalConnections = getIntNotNull(properties, "client.http.maxTotalConnections");
+        maxConnectionsPerRoute = getIntNotNull(properties, "client.http.maxConnectionsPerRoute");
+        connectionTimeoutInSec = getIntNotNull(properties, "client.http.connectionTimeoutInSeconds");
+        responseTimeoutInSec = getIntNotNull(properties, "client.http.responseTimeoutInSeconds");
     }
 
 }
