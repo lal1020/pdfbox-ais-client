@@ -8,7 +8,8 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonPropertyOrder({
     "@WhichDocument",
-    "Base64Signature"
+    "Base64Signature",
+    "Timestamp"
 })
 public class ScExtendedSignatureObject {
 
@@ -16,6 +17,8 @@ public class ScExtendedSignatureObject {
     private String whichDocument;
     @JsonProperty("Base64Signature")
     private Base64Signature__1 base64Signature;
+    @JsonProperty("Timestamp")
+    private Timestamp__1 timestamp;
 
     @JsonProperty("@WhichDocument")
     public String getWhichDocument() {
@@ -47,6 +50,21 @@ public class ScExtendedSignatureObject {
         return this;
     }
 
+    @JsonProperty("Timestamp")
+    public Timestamp__1 getTimestamp() {
+        return timestamp;
+    }
+
+    @JsonProperty("Timestamp")
+    public void setTimestamp(Timestamp__1 timestamp) {
+        this.timestamp = timestamp;
+    }
+
+    public ScExtendedSignatureObject withTimestamp(Timestamp__1 timestamp) {
+        this.timestamp = timestamp;
+        return this;
+    }
+
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
@@ -58,6 +76,10 @@ public class ScExtendedSignatureObject {
         sb.append("base64Signature");
         sb.append('=');
         sb.append(((this.base64Signature == null)?"<null>":this.base64Signature));
+        sb.append(',');
+        sb.append("timestamp");
+        sb.append('=');
+        sb.append(((this.timestamp == null)?"<null>":this.timestamp));
         sb.append(',');
         if (sb.charAt((sb.length()- 1)) == ',') {
             sb.setCharAt((sb.length()- 1), ']');

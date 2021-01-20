@@ -1,6 +1,8 @@
 package com.swisscom.ais.client.model;
 
 import com.swisscom.ais.client.AisClientException;
+import com.swisscom.ais.client.rest.model.RevocationInformation;
+import com.swisscom.ais.client.rest.model.SignatureStandard;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -9,18 +11,25 @@ import java.util.UUID;
 
 import static com.swisscom.ais.client.utils.Utils.getStringNotNull;
 
+@SuppressWarnings("unused")
 public class UserData {
 
     private String transactionId;
 
     private String claimedIdentityName;
+    private String claimedIdentityKey;
     private String distinguishedName;
 
-    private String promptLanguage;
-    private String promptMsisdn;
-    private String promptMessage;
+    private String stepUpLanguage;
+    private String stepUpMsisdn;
+    private String stepUpMessage;
+    private String stepUpSerialNumber;
 
     private ConsentUrlCallback consentUrlCallback;
+
+    private boolean addTimestamp = true;
+    private RevocationInformation addRevocationInformation = RevocationInformation.DEFAULT;
+    private SignatureStandard signatureStandard = SignatureStandard.DEFAULT;
 
     // ----------------------------------------------------------------------------------------------------
 
@@ -53,28 +62,28 @@ public class UserData {
         this.claimedIdentityName = claimedIdentityName;
     }
 
-    public String getPromptLanguage() {
-        return promptLanguage;
+    public String getStepUpLanguage() {
+        return stepUpLanguage;
     }
 
-    public void setPromptLanguage(String promptLanguage) {
-        this.promptLanguage = promptLanguage;
+    public void setStepUpLanguage(String stepUpLanguage) {
+        this.stepUpLanguage = stepUpLanguage;
     }
 
-    public String getPromptMsisdn() {
-        return promptMsisdn;
+    public String getStepUpMsisdn() {
+        return stepUpMsisdn;
     }
 
-    public void setPromptMsisdn(String promptMsisdn) {
-        this.promptMsisdn = promptMsisdn;
+    public void setStepUpMsisdn(String stepUpMsisdn) {
+        this.stepUpMsisdn = stepUpMsisdn;
     }
 
-    public String getPromptMessage() {
-        return promptMessage;
+    public String getStepUpMessage() {
+        return stepUpMessage;
     }
 
-    public void setPromptMessage(String promptMessage) {
-        this.promptMessage = promptMessage;
+    public void setStepUpMessage(String stepUpMessage) {
+        this.stepUpMessage = stepUpMessage;
     }
 
     public String getDistinguishedName() {
@@ -91,6 +100,46 @@ public class UserData {
 
     public void setConsentUrlCallback(ConsentUrlCallback consentUrlCallback) {
         this.consentUrlCallback = consentUrlCallback;
+    }
+
+    public boolean isAddTimestamp() {
+        return addTimestamp;
+    }
+
+    public void setAddTimestamp(boolean addTimestamp) {
+        this.addTimestamp = addTimestamp;
+    }
+
+    public RevocationInformation getAddRevocationInformation() {
+        return addRevocationInformation;
+    }
+
+    public void setAddRevocationInformation(RevocationInformation addRevocationInformation) {
+        this.addRevocationInformation = addRevocationInformation;
+    }
+
+    public SignatureStandard getSignatureStandard() {
+        return signatureStandard;
+    }
+
+    public void setSignatureStandard(SignatureStandard signatureStandard) {
+        this.signatureStandard = signatureStandard;
+    }
+
+    public String getClaimedIdentityKey() {
+        return claimedIdentityKey;
+    }
+
+    public void setClaimedIdentityKey(String claimedIdentityKey) {
+        this.claimedIdentityKey = claimedIdentityKey;
+    }
+
+    public String getStepUpSerialNumber() {
+        return stepUpSerialNumber;
+    }
+
+    public void setStepUpSerialNumber(String stepUpSerialNumber) {
+        this.stepUpSerialNumber = stepUpSerialNumber;
     }
 
     // ----------------------------------------------------------------------------------------------------
@@ -119,9 +168,11 @@ public class UserData {
 
     public void setFromProperties(Properties properties) {
         claimedIdentityName = getStringNotNull(properties, "signature.claimedIdentityName");
-        promptLanguage = getStringNotNull(properties, "signature.prompt.language");
-        promptMsisdn = getStringNotNull(properties, "signature.prompt.msisdn");
-        promptMessage = getStringNotNull(properties, "signature.prompt.message");
+        claimedIdentityKey = properties.getProperty("signature.claimedIdentityKey");
+        stepUpLanguage = getStringNotNull(properties, "signature.stepUp.language");
+        stepUpMsisdn = getStringNotNull(properties, "signature.stepUp.msisdn");
+        stepUpMessage = getStringNotNull(properties, "signature.stepUp.message");
+        stepUpSerialNumber = getStringNotNull(properties, "signature.stepUp.serialNumber");
         distinguishedName = getStringNotNull(properties, "signature.distinguishedName");
     }
 

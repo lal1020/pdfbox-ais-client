@@ -1,5 +1,9 @@
 package com.swisscom.ais.client.model;
 
+import com.swisscom.ais.client.utils.Trace;
+
+import static com.swisscom.ais.client.utils.Utils.valueNotEmpty;
+
 public class PdfHandle {
 
     private String inputFromFile;
@@ -20,6 +24,11 @@ public class PdfHandle {
 
     public void setOutputToFile(String outputToFile) {
         this.outputToFile = outputToFile;
+    }
+
+    public void validateYourself(Trace trace) {
+        valueNotEmpty(inputFromFile, "The inputFromFile cannot be null or empty", trace);
+        valueNotEmpty(outputToFile, "The outputToFile cannot be null or empty", trace);
     }
 
 }

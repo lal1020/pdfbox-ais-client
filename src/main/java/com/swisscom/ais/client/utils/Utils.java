@@ -1,5 +1,7 @@
 package com.swisscom.ais.client.utils;
 
+import com.swisscom.ais.client.AisClientException;
+
 import java.util.Properties;
 import java.util.UUID;
 
@@ -33,6 +35,26 @@ public class Utils {
         String pattern = leftBoundChar + "[A-Za-z0-9+/=_-]{1000,}" + rightBoundChar;
         String replacement = leftBoundChar + "..." + rightBoundChar;
         return source.replaceAll(pattern, replacement);
+    }
+
+    public static void valueNotEmpty(String value, String errorMessage, Trace trace) throws AisClientException {
+        if (value == null || value.trim().length() == 0) {
+            if (trace == null) {
+                throw new AisClientException(errorMessage);
+            } else {
+                throw new AisClientException(errorMessage + " - " + trace.getId());
+            }
+        }
+    }
+
+    public static void valueBetween(int value, int minValue, int maxValue, String errorMessage, Trace trace) throws AisClientException {
+        if (value < minValue || value > maxValue) {
+            if (trace == null) {
+                throw new AisClientException(errorMessage);
+            } else {
+                throw new AisClientException(errorMessage + " - " + trace.getId());
+            }
+        }
     }
 
 }

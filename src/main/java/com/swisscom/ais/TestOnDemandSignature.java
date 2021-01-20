@@ -6,10 +6,10 @@ import com.swisscom.ais.client.model.UserData;
 import com.swisscom.ais.client.rest.RestClientConfiguration;
 import com.swisscom.ais.client.rest.RestClientImpl;
 
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.Properties;
 
-public class TestTimestamping {
+public class TestOnDemandSignature {
 
     public static void main(String[] args) throws Exception {
         Properties properties = new Properties();
@@ -25,16 +25,12 @@ public class TestTimestamping {
             UserData userData = new UserData();
             userData.setFromProperties(properties);
             userData.setTransactionIdToRandomUuid();
+            userData.setConsentUrlCallback((consentUrl, userData1) -> System.out.println("Consent URL: " + consentUrl));
 
-            PdfHandle document1 = new PdfHandle();
-            document1.setInputFromFile(properties.getProperty("local.test.inputFile1"));
-            document1.setOutputToFile(properties.getProperty("local.test.outputFilePrefix1") + System.currentTimeMillis() + ".pdf");
-
-            PdfHandle document2 = new PdfHandle();
-            document2.setInputFromFile(properties.getProperty("local.test.inputFile2"));
-            document2.setOutputToFile(properties.getProperty("local.test.outputFilePrefix2") + System.currentTimeMillis() + ".pdf");
-
-            aisClient.timestamp(Arrays.asList(document1, document2), userData);
+            PdfHandle document = new PdfHandle();
+            document.setInputFromFile(properties.getProperty("local.test.inputFile"));
+            document.setOutputToFile(properties.getProperty("local.test.outputFilePrefix") + System.currentTimeMillis() + ".pdf");
+            aisClient.signWithOnDemandCertificate(Collections.singletonList(document), userData);
         }
     }
 

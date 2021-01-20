@@ -18,7 +18,8 @@ public class ModelHelper {
                                                      SignatureType signatureType,
                                                      UserData userData,
                                                      List<AdditionalProfile> additionalProfiles,
-                                                     boolean withStepUp) {
+                                                     boolean withStepUp,
+                                                     boolean withCertificateRequest) {
         // Input documents --------------------------------------------------------------------------------
         List<DocumentHash> documentHashes = new ArrayList<>();
         for (PdfDocument document : documents) {
@@ -32,34 +33,53 @@ public class ModelHelper {
         inputDocuments.setDocumentHash(documentHashes);
 
         // Optional inputs --------------------------------------------------------------------------------
-//        AddTimestamp addTimestamp = new AddTimestamp();
-//        addTimestamp.setType(CoreValues.TIMESTAMP_TYPE_RFC_3161); // TODO
+        AddTimestamp addTimestamp = null;
+        if (userData.isAddTimestamp()) {
+            addTimestamp = new AddTimestamp();
+            addTimestamp.setType(SignatureType.TIMESTAMP.getUri());
+        }
 
         ClaimedIdentity claimedIdentity = new ClaimedIdentity();
-        claimedIdentity.setName(userData.getClaimedIdentityName());
+        if (userData.getClaimedIdentityKey() != null && userData.getClaimedIdentityKey().length() > 0) {
+            claimedIdentity.setName(userData.getClaimedIdentityName() + ":" + userData.getClaimedIdentityKey());
+        } else {
+            claimedIdentity.setName(userData.getClaimedIdentityName());
+        }
 
         ScCertificateRequest certificateRequest = null;
+        if (withCertificateRequest) {
+            certificateRequest = new ScCertificateRequest();
+            certificateRequest.setScDistinguishedName(userData.getDistinguishedName());
+        }
+
         if (withStepUp) {
+            if (certificateRequest == null) {
+                certificateRequest = new ScCertificateRequest();
+            }
+
             ScPhone phone = new ScPhone();
-            phone.setScLanguage(userData.getPromptLanguage());
-            phone.setScMSISDN(userData.getPromptMsisdn());
-            phone.setScMessage(userData.getPromptMessage());
+            phone.setScLanguage(userData.getStepUpLanguage());
+            phone.setScMSISDN(userData.getStepUpMsisdn());
+            phone.setScMessage(userData.getStepUpMessage());
 
             ScStepUpAuthorisation stepUpAuthorisation = new ScStepUpAuthorisation();
             stepUpAuthorisation.setScPhone(phone);
 
-            certificateRequest = new ScCertificateRequest();
-            certificateRequest.setScDistinguishedName(userData.getDistinguishedName());
             certificateRequest.setScStepUpAuthorisation(stepUpAuthorisation);
         }
 
         OptionalInputs optionalInputs = new OptionalInputs();
-//        optionalInputs.setAddTimestamp(addTimestamp);
+        optionalInputs.setAddTimestamp(addTimestamp);
         optionalInputs.setAdditionalProfile(additionalProfiles.stream().map(AdditionalProfile::getUri).collect(Collectors.toList()));
         optionalInputs.setClaimedIdentity(claimedIdentity);
         optionalInputs.setSignatureType(signatureType.getUri());
-//        optionalInputs.setScAddRevocationInformation("");
         optionalInputs.setScCertificateRequest(certificateRequest);
+        if (userData.getAddRevocationInformation() != RevocationInformation.DEFAULT) {
+            optionalInputs.setScAddRevocationInformation(userData.getAddRevocationInformation().getValue());
+        }
+        if (userData.getSignatureStandard() != SignatureStandard.DEFAULT) {
+            optionalInputs.setScSignatureStandard(userData.getSignatureStandard().getValue());
+        }
 
         // Sign request --------------------------------------------------------------------------------
         SignRequest request = new SignRequest();

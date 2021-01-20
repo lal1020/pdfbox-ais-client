@@ -30,7 +30,7 @@ public class TestOnDemandSignatureWithStepUp {
             PdfHandle document = new PdfHandle();
             document.setInputFromFile(properties.getProperty("local.test.inputFile"));
             document.setOutputToFile(properties.getProperty("local.test.outputFilePrefix") + System.currentTimeMillis() + ".pdf");
-            aisClient.signDocumentsWithOnDemandCertificate(Collections.singletonList(document), userData);
+            aisClient.signWithOnDemandCertificateAndStepUp(Collections.singletonList(document), userData);
         }
     }
 

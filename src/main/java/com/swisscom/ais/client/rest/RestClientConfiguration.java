@@ -7,6 +7,8 @@ import java.util.Properties;
 
 import static com.swisscom.ais.client.utils.Utils.getIntNotNull;
 import static com.swisscom.ais.client.utils.Utils.getStringNotNull;
+import static com.swisscom.ais.client.utils.Utils.valueBetween;
+import static com.swisscom.ais.client.utils.Utils.valueNotEmpty;
 
 public class RestClientConfiguration {
 
@@ -38,6 +40,8 @@ public class RestClientConfiguration {
     }
 
     public void setClientKeyFile(String clientKeyFile) {
+        valueNotEmpty(clientKeyFile,
+                      "The clientKeyFile parameter of the REST client configuration must not be empty", null);
         this.clientKeyFile = clientKeyFile;
     }
 
@@ -46,6 +50,8 @@ public class RestClientConfiguration {
     }
 
     public void setClientKeyPassword(String clientKeyPassword) {
+        valueNotEmpty(clientKeyPassword,
+                      "The clientKeyPassword parameter of the REST client configuration must not be empty", null);
         this.clientKeyPassword = clientKeyPassword;
     }
 
@@ -54,6 +60,8 @@ public class RestClientConfiguration {
     }
 
     public void setClientCertificateFile(String clientCertificateFile) {
+        valueNotEmpty(clientCertificateFile,
+                      "The clientCertificateFile parameter of the REST client configuration must not be empty", null);
         this.clientCertificateFile = clientCertificateFile;
     }
 
@@ -62,6 +70,8 @@ public class RestClientConfiguration {
     }
 
     public void setServerCertificateFile(String serverCertificateFile) {
+        valueNotEmpty(serverCertificateFile,
+                      "The serverCertificateFile parameter of the REST client configuration must not be empty", null);
         this.serverCertificateFile = serverCertificateFile;
     }
 
@@ -70,6 +80,8 @@ public class RestClientConfiguration {
     }
 
     public void setRestServiceSignUrl(String restServiceSignUrl) {
+        valueNotEmpty(restServiceSignUrl,
+                      "The restServiceSignUrl parameter of the REST client configuration must not be empty", null);
         this.restServiceSignUrl = restServiceSignUrl;
     }
 
@@ -78,6 +90,8 @@ public class RestClientConfiguration {
     }
 
     public void setRestServicePendingUrl(String restServicePendingUrl) {
+        valueNotEmpty(restServicePendingUrl,
+                      "The restServicePendingUrl parameter of the REST client configuration must not be empty", null);
         this.restServicePendingUrl = restServicePendingUrl;
     }
 
@@ -86,6 +100,8 @@ public class RestClientConfiguration {
     }
 
     public void setMaxTotalConnections(int maxTotalConnections) {
+        valueBetween(maxTotalConnections, 2, 100,
+                     "The maxTotalConnections parameter of the REST client configuration must be between 2 and 100", null);
         this.maxTotalConnections = maxTotalConnections;
     }
 
@@ -94,6 +110,8 @@ public class RestClientConfiguration {
     }
 
     public void setMaxConnectionsPerRoute(int maxConnectionsPerRoute) {
+        valueBetween(maxConnectionsPerRoute, 2, 100,
+                     "The maxConnectionsPerRoute parameter of the REST client configuration must be between 2 and 100", null);
         this.maxConnectionsPerRoute = maxConnectionsPerRoute;
     }
 
@@ -102,6 +120,8 @@ public class RestClientConfiguration {
     }
 
     public void setConnectionTimeoutInSec(int connectionTimeoutInSec) {
+        valueBetween(connectionTimeoutInSec, 2, 100,
+                     "The connectionTimeoutInSec parameter of the REST client configuration must be between 2 and 100", null);
         this.connectionTimeoutInSec = connectionTimeoutInSec;
     }
 
@@ -110,11 +130,14 @@ public class RestClientConfiguration {
     }
 
     public void setResponseTimeoutInSec(int responseTimeoutInSec) {
+        valueBetween(responseTimeoutInSec, 2, 100,
+                     "The responseTimeoutInSec parameter of the REST client configuration must be between 2 and 100", null);
         this.responseTimeoutInSec = responseTimeoutInSec;
     }
 
     // ----------------------------------------------------------------------------------------------------
 
+    @SuppressWarnings("unused")
     public void setFromPropertiesClasspathFile(String fileName) {
         Properties properties;
         try {
@@ -127,16 +150,16 @@ public class RestClientConfiguration {
     }
 
     public void setFromProperties(Properties properties) {
-        restServiceSignUrl = getStringNotNull(properties, "server.rest.signUrl");
-        restServicePendingUrl = getStringNotNull(properties, "server.rest.pendingUrl");
-        clientKeyFile = getStringNotNull(properties, "client.auth.keyFile");
-        clientKeyPassword = getStringNotNull(properties, "client.auth.keyPassword");
-        clientCertificateFile = getStringNotNull(properties, "client.cert.file");
-        serverCertificateFile = getStringNotNull(properties, "server.cert.file");
-        maxTotalConnections = getIntNotNull(properties, "client.http.maxTotalConnections");
-        maxConnectionsPerRoute = getIntNotNull(properties, "client.http.maxConnectionsPerRoute");
-        connectionTimeoutInSec = getIntNotNull(properties, "client.http.connectionTimeoutInSeconds");
-        responseTimeoutInSec = getIntNotNull(properties, "client.http.responseTimeoutInSeconds");
+        setRestServiceSignUrl(getStringNotNull(properties, "server.rest.signUrl"));
+        setRestServicePendingUrl(getStringNotNull(properties, "server.rest.pendingUrl"));
+        setClientKeyFile(getStringNotNull(properties, "client.auth.keyFile"));
+        setClientKeyPassword(getStringNotNull(properties, "client.auth.keyPassword"));
+        setClientCertificateFile(getStringNotNull(properties, "client.cert.file"));
+        setServerCertificateFile(getStringNotNull(properties, "server.cert.file"));
+        setMaxTotalConnections(getIntNotNull(properties, "client.http.maxTotalConnections"));
+        setMaxConnectionsPerRoute(getIntNotNull(properties, "client.http.maxConnectionsPerRoute"));
+        setConnectionTimeoutInSec(getIntNotNull(properties, "client.http.connectionTimeoutInSeconds"));
+        setResponseTimeoutInSec(getIntNotNull(properties, "client.http.responseTimeoutInSeconds"));
     }
 
 }

@@ -9,10 +9,12 @@ import java.util.List;
 // TODO handle the normal failure outcomes (user cancel, user timeout, etc)
 public interface AisClient extends Closeable {
 
-    void signDocumentsWithStaticCertificate(List<PdfHandle> documentHandles, UserData userData) throws AisClientException;
+    void signWithStaticCertificate(List<PdfHandle> documentHandles, UserData userData) throws AisClientException;
 
-    void signDocumentsWithOnDemandCertificate(List<PdfHandle> documentHandles, UserData userData) throws AisClientException;
+    void signWithOnDemandCertificate(List<PdfHandle> documentHandles, UserData userData) throws AisClientException;
 
-    void timestampOneSingleDocument(PdfHandle documentHandle, UserData userData) throws AisClientException;
+    void signWithOnDemandCertificateAndStepUp(List<PdfHandle> documentHandles, UserData userData) throws AisClientException;
+
+    void timestamp(List<PdfHandle> documentHandles, UserData userData) throws AisClientException;
 
 }

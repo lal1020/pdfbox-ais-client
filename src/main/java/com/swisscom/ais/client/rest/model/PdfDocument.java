@@ -27,6 +27,8 @@ public class PdfDocument implements Closeable {
 
     private String id;
 
+    private String name;
+
     private PDDocument pbDocument;
 
     private PDSignature pbSignature;
@@ -39,7 +41,8 @@ public class PdfDocument implements Closeable {
 
     // ----------------------------------------------------------------------------------------------------
 
-    public PdfDocument(InputStream contentIn, OutputStream contentOut) {
+    public PdfDocument(String name, InputStream contentIn, OutputStream contentOut) {
+        this.name = name;
         this.contentIn = contentIn;
         this.contentOut = contentOut;
     }
@@ -99,6 +102,10 @@ public class PdfDocument implements Closeable {
 
     public String getId() {
         return id;
+    }
+
+    public String getName() {
+        return name;
     }
 
     public PDDocument getPbDocument() {
