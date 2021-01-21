@@ -240,23 +240,36 @@ public class AisClientImpl implements AisClient {
         }
     }
 
+    private boolean checkForConsentUrlInTheResponse(AISSignResponse response, UserData userData, Trace trace) {
+        if (ResponseHelper.responseHasStepUpConsentUrl(response)) {
+            if (userData.getConsentUrlCallback() != null) {
+                userData.getConsentUrlCallback().onConsentUrlReceived(ResponseHelper.getStepUpConsentUrl(response), userData);
+            } else {
+                logClient.warn("Consent URL was received from AIS, but no consent URL callback was configured " +
+                               "(in UserData). This transaction will probably fail - {}", trace.getId());
+            }
+            return true;
+        }
+        return false;
+    }
+
     private AISSignResponse pollUntilSignatureIsComplete(AISSignResponse signResponse, UserData userData, Trace trace) {
         AISSignResponse localResponse = signResponse;
         try {
-            for (int round = 0; round < configuration.getSignaturePollingRounds() && ResponseHelper.responseIsAsyncPending(localResponse); round++) {
-                if (ResponseHelper.responseHasStepUpConsentUrl(localResponse)) {
-                    if (userData.getConsentUrlCallback() != null) {
-                        userData.getConsentUrlCallback().onConsentUrlReceived(ResponseHelper.getStepUpConsentUrl(localResponse), userData);
-                    } else {
-                        logClient.warn("Consent URL was received from AIS, but no consent URL callback was configured " +
-                                       "(in UserData). This transaction will probably fail - {}", trace.getId());
-                    }
-                }
+            if (checkForConsentUrlInTheResponse(localResponse, userData, trace)) {
                 TimeUnit.SECONDS.sleep(configuration.getSignaturePollingIntervalInSeconds());
+            }
+            for (int round = 0; round < configuration.getSignaturePollingRounds(); round++) {
                 logProtocol.debug("Polling for signature status, round {}/{} - {}",
                                   round + 1, configuration.getSignaturePollingRounds(), trace.getId());
                 AISPendingRequest pendingRequest = ModelHelper.buildAisPendingRequest(ResponseHelper.getResponseId(localResponse), userData);
                 localResponse = restClient.pollForSignatureStatus(pendingRequest, trace);
+                checkForConsentUrlInTheResponse(localResponse, userData, trace);
+                if (ResponseHelper.responseIsAsyncPending(localResponse)) {
+                    TimeUnit.SECONDS.sleep(configuration.getSignaturePollingIntervalInSeconds());
+                } else {
+                    break;
+                }
             }
         } catch (Exception e) {
             throw new AisClientException("Failed to poll AIS for the status of the signature(s) - " + trace.getId(), e);
