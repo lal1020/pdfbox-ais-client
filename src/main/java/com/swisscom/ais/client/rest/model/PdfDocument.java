@@ -1,8 +1,8 @@
 package com.swisscom.ais.client.rest.model;
 
 import com.swisscom.ais.client.AisClientException;
+import com.swisscom.ais.client.utils.SigUtils;
 import com.swisscom.ais.client.utils.Utils;
-import com.swisscom.ais.pdfbox.SigUtils;
 
 import org.apache.pdfbox.cos.COSName;
 import org.apache.pdfbox.io.IOUtils;

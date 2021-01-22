@@ -13,9 +13,9 @@
         <appender-ref ref="Console"/>
     </root>
 
-    <logger name="swisscom.ais.client" level="debug"/>
+    <logger name="swisscom.ais.client" level="info"/>
     <logger name="swisscom.ais.client.requestResponse" level="warn"/>
-    <logger name="swisscom.ais.client.fullRequestResponse" level="debug"/>
+    <logger name="swisscom.ais.client.fullRequestResponse" level="warn"/>
     <logger name="org.apache.hc" level="warn"/>
 
 </configuration>

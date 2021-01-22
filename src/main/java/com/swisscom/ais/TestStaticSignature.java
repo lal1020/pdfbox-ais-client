@@ -14,7 +14,7 @@ public class TestStaticSignature {
 
     public static void main(String[] args) throws Exception {
         Properties properties = new Properties();
-        properties.load(TestPdfBoxDirectly.class.getResourceAsStream("/local-config.properties"));
+        properties.load(TestStaticSignature.class.getResourceAsStream("/local-config.properties"));
 
         RestClientConfiguration config = new RestClientConfiguration();
         config.setFromProperties(properties);

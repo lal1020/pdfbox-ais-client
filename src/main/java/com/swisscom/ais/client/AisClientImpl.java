@@ -198,12 +198,10 @@ public class AisClientImpl implements AisClient {
     private PdfDocument prepareOneDocumentForSigning(PdfHandle documentHandle, SignatureMode signatureMode,
                                                      SignatureType signatureType, Trace trace) {
         try {
-            if (logClient.isDebugEnabled()) {
-                logClient.debug("Preparing {} signing for document: {} - {}",
-                                signatureMode.getFriendlyName(),
-                                documentHandle.getInputFromFile(),
-                                trace);
-            }
+            logClient.info("Preparing {} signing for document: {} - {}",
+                            signatureMode.getFriendlyName(),
+                            documentHandle.getInputFromFile(),
+                            trace.getId());
             FileInputStream fileIn = new FileInputStream(documentHandle.getInputFromFile());
             FileOutputStream fileOut = new FileOutputStream(documentHandle.getOutputToFile());
 

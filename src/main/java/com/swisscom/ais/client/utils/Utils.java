@@ -32,7 +32,7 @@ public class Utils {
     }
 
     public static String stripInnerLargeBase64Content(String source, char leftBoundChar, char rightBoundChar) {
-        String pattern = leftBoundChar + "[A-Za-z0-9+/=_-]{1000,}" + rightBoundChar;
+        String pattern = leftBoundChar + "[A-Za-z0-9+\\\\/=_-]{500,}" + rightBoundChar;
         String replacement = leftBoundChar + "..." + rightBoundChar;
         return source.replaceAll(pattern, replacement);
     }
