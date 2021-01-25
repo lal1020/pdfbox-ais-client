@@ -1,5 +1,7 @@
 package com.swisscom.ais.client.rest.model;
 
+import com.swisscom.ais.client.model.RevocationInformation;
+import com.swisscom.ais.client.model.SignatureStandard;
 import com.swisscom.ais.client.model.UserData;
 import com.swisscom.ais.client.rest.model.pendingreq.AISPendingRequest;
 import com.swisscom.ais.client.rest.model.pendingreq.AsyncPendingRequest;

@@ -58,16 +58,18 @@ public class Cli {
         Properties properties = new Properties();
         properties.load(new FileInputStream(configFile));
 
-        RestClientConfiguration config = new RestClientConfiguration();
-        config.setFromProperties(properties);
+        RestClientConfiguration restConfig = new RestClientConfiguration();
+        restConfig.setFromProperties(properties);
 
         RestClientImpl restClient = new RestClientImpl();
-        restClient.setConfiguration(config);
+        restClient.setConfiguration(restConfig);
 
-        try (AisClientImpl aisClient = new AisClientImpl(restClient)) {
+        AisClientConfiguration aisConfig = new AisClientConfiguration();
+        aisConfig.setFromProperties(properties);
+
+        try (AisClientImpl aisClient = new AisClientImpl(aisConfig, restClient)) {
             UserData userData = new UserData();
             userData.setFromProperties(properties);
-            userData.setTransactionIdToRandomUuid();
             userData.setConsentUrlCallback((consentUrl, userData1) -> System.out.println("Consent URL: " + consentUrl));
 
             PdfHandle document = new PdfHandle();
@@ -201,11 +203,14 @@ public class Cli {
         System.out.println("    -input [FILE]                                       - Source PDF file to sign");
         System.out.println("    -output [FILE]                                      - Output PDF file, where the signed document should be written");
         System.out.println("    -type [static|ondemand|ondemand-stepup|timestamp]   - The type of signature to create");
-        System.out.println("    -config [PROPERTIES FILE]                           - The properties file that provides the extra configuration parameters. "
-                           + "Use -init to create a sample file. If you don't specify a file, by default config.properties is used");
+        System.out.println(
+            "    -config [PROPERTIES FILE]                           - The properties file that provides the extra configuration parameters. "
+            + "Use -init to create a sample file. If you don't specify a file, by default config.properties is used");
         System.out.println("    -help                                               - This help text");
-        System.out.println("    -v                                                  - Be verbose about what is going on (sets Logback config to info)");
-        System.out.println("    -vv                                                 - Be EXTRA verbose about what is going on (sets Logback config to debug)");
+        System.out
+            .println("    -v                                                  - Be verbose about what is going on (sets Logback config to info)");
+        System.out.println(
+            "    -vv                                                 - Be EXTRA verbose about what is going on (sets Logback config to debug)");
         System.out.println();
         System.out.println("Use case:");
         System.out.println("    1. > java -jar ais-client.jar -init   => Have the config files generated for you in the current folder");

@@ -1,8 +1,6 @@
 package com.swisscom.ais.client.model;
 
 import com.swisscom.ais.client.AisClientException;
-import com.swisscom.ais.client.rest.model.RevocationInformation;
-import com.swisscom.ais.client.rest.model.SignatureStandard;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -34,6 +32,7 @@ public class UserData {
     // ----------------------------------------------------------------------------------------------------
 
     public UserData() {
+        setTransactionIdToRandomUuid();
     }
 
     public UserData(String transactionId) {

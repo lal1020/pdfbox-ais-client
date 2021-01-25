@@ -2,6 +2,7 @@ package com.swisscom.ais;
 
 import com.swisscom.ais.client.AisClientImpl;
 import com.swisscom.ais.client.model.PdfHandle;
+import com.swisscom.ais.client.model.SignatureResult;
 import com.swisscom.ais.client.model.UserData;
 import com.swisscom.ais.client.rest.RestClientConfiguration;
 import com.swisscom.ais.client.rest.RestClientImpl;
@@ -24,13 +25,14 @@ public class TestOnDemandSignature {
         try (AisClientImpl aisClient = new AisClientImpl(restClient)) {
             UserData userData = new UserData();
             userData.setFromProperties(properties);
-            userData.setTransactionIdToRandomUuid();
             userData.setConsentUrlCallback((consentUrl, userData1) -> System.out.println("Consent URL: " + consentUrl));
 
             PdfHandle document = new PdfHandle();
             document.setInputFromFile(properties.getProperty("local.test.inputFile"));
             document.setOutputToFile(properties.getProperty("local.test.outputFilePrefix") + System.currentTimeMillis() + ".pdf");
-            aisClient.signWithOnDemandCertificate(Collections.singletonList(document), userData);
+
+            SignatureResult result = aisClient.signWithOnDemandCertificate(Collections.singletonList(document), userData);
+            System.out.println("Final result: " + result);
         }
     }
 

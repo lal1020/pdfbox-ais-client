@@ -2,6 +2,7 @@ package com.swisscom.ais;
 
 import com.swisscom.ais.client.AisClientImpl;
 import com.swisscom.ais.client.model.PdfHandle;
+import com.swisscom.ais.client.model.SignatureResult;
 import com.swisscom.ais.client.model.UserData;
 import com.swisscom.ais.client.rest.RestClientConfiguration;
 import com.swisscom.ais.client.rest.RestClientImpl;
@@ -24,7 +25,6 @@ public class TestTimestamping {
         try (AisClientImpl aisClient = new AisClientImpl(restClient)) {
             UserData userData = new UserData();
             userData.setFromProperties(properties);
-            userData.setTransactionIdToRandomUuid();
 
             PdfHandle document1 = new PdfHandle();
             document1.setInputFromFile(properties.getProperty("local.test.inputFile1"));
@@ -34,7 +34,8 @@ public class TestTimestamping {
             document2.setInputFromFile(properties.getProperty("local.test.inputFile2"));
             document2.setOutputToFile(properties.getProperty("local.test.outputFilePrefix2") + System.currentTimeMillis() + ".pdf");
 
-            aisClient.timestamp(Arrays.asList(document1, document2), userData);
+            SignatureResult result = aisClient.timestamp(Arrays.asList(document1, document2), userData);
+            System.out.println("Final result: " + result);
         }
     }
 

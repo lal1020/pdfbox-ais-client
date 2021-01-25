@@ -1,4 +1,4 @@
-package com.swisscom.ais.client.rest.model;
+package com.swisscom.ais.client.model;
 
 public enum RevocationInformation {
 

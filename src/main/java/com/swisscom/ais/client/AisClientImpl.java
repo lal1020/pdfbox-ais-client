@@ -2,14 +2,10 @@ package com.swisscom.ais.client;
 
 import com.swisscom.ais.client.model.PdfHandle;
 import com.swisscom.ais.client.model.SignatureMode;
+import com.swisscom.ais.client.model.SignatureResult;
 import com.swisscom.ais.client.model.UserData;
 import com.swisscom.ais.client.rest.RestClient;
-import com.swisscom.ais.client.rest.model.AdditionalProfile;
-import com.swisscom.ais.client.rest.model.DigestAlgorithm;
-import com.swisscom.ais.client.rest.model.ModelHelper;
-import com.swisscom.ais.client.rest.model.PdfDocument;
-import com.swisscom.ais.client.rest.model.ResponseHelper;
-import com.swisscom.ais.client.rest.model.SignatureType;
+import com.swisscom.ais.client.rest.model.*;
 import com.swisscom.ais.client.rest.model.pendingreq.AISPendingRequest;
 import com.swisscom.ais.client.rest.model.signreq.AISSignRequest;
 import com.swisscom.ais.client.rest.model.signresp.AISSignResponse;
@@ -40,6 +36,7 @@ public class AisClientImpl implements AisClient {
 
     // ----------------------------------------------------------------------------------------------------
 
+    @SuppressWarnings("unused")
     public AisClientImpl() {
         // no code here
     }
@@ -48,10 +45,15 @@ public class AisClientImpl implements AisClient {
         this.restClient = restClient;
     }
 
+    public AisClientImpl(AisClientConfiguration configuration, RestClient restClient) {
+        this.configuration = configuration;
+        this.restClient = restClient;
+    }
+
     // ----------------------------------------------------------------------------------------------------
 
     @Override
-    public void signWithStaticCertificate(List<PdfHandle> documentHandles, UserData userData) {
+    public SignatureResult signWithStaticCertificate(List<PdfHandle> documentHandles, UserData userData) {
         userData.validateYourself();
         Trace trace = new Trace(userData.getTransactionId());
         documentHandles.forEach(handle -> handle.validateYourself(trace));
@@ -71,13 +73,16 @@ public class AisClientImpl implements AisClient {
         } catch (Exception e) {
             throw new AisClientException("Failed to communicate with the AIS service and obtain the signature(s) - " + trace.getId(), e);
         }
-        checkThatResponseIsSuccessful(signResponse, trace);
+        if (!checkThatResponseIsSuccessful(signResponse)) {
+            return selectASignatureResultForResponse(signResponse, trace);
+        }
         // finish the signing
         finishDocumentsSigning(documentsToSign, signResponse, SignatureMode.STATIC, trace);
+        return SignatureResult.SUCCESS;
     }
 
     @Override
-    public void signWithOnDemandCertificate(List<PdfHandle> documentHandles, UserData userData) {
+    public SignatureResult signWithOnDemandCertificate(List<PdfHandle> documentHandles, UserData userData) {
         userData.validateYourself();
         Trace trace = new Trace(userData.getTransactionId());
         documentHandles.forEach(handle -> handle.validateYourself(trace));
@@ -89,7 +94,8 @@ public class AisClientImpl implements AisClient {
         // start the signature
         AISSignResponse signResponse;
         try {
-            List<AdditionalProfile> additionalProfiles = prepareAdditionalProfiles(documentsToSign, AdditionalProfile.ON_DEMAND_CERTIFICATE);
+            List<AdditionalProfile> additionalProfiles = prepareAdditionalProfiles(documentsToSign,
+                                                                                   AdditionalProfile.ON_DEMAND_CERTIFICATE);
             AISSignRequest signRequest = ModelHelper.buildAisSignRequest(documentsToSign, SignatureType.CMS,
                                                                          userData, additionalProfiles,
                                                                          false, true);
@@ -97,13 +103,28 @@ public class AisClientImpl implements AisClient {
         } catch (Exception e) {
             throw new AisClientException("Failed to communicate with the AIS service and obtain the signature(s) - " + trace.getId(), e);
         }
-        checkThatResponseIsSuccessful(signResponse, trace);
+//        if (!checkThatResponseIsPending(signResponse)) {
+//            return selectASignatureResultForResponse(signResponse, trace);
+//        }
+//        // poll for signature status
+//        signResponse = pollUntilSignatureIsComplete(signResponse, userData, trace);
+//        if (!checkThatResponseIsSuccessful(signResponse)) {
+//            return selectASignatureResultForResponse(signResponse, trace);
+//        }
+//        // finish the signing
+//        finishDocumentsSigning(documentsToSign, signResponse, SignatureMode.ON_DEMAND, trace);
+//        return SignatureResult.SUCCESS;
+
+        if (!checkThatResponseIsSuccessful(signResponse)) {
+            return selectASignatureResultForResponse(signResponse, trace);
+        }
         // finish the signing
         finishDocumentsSigning(documentsToSign, signResponse, SignatureMode.ON_DEMAND, trace);
+        return SignatureResult.SUCCESS;
     }
 
     @Override
-    public void signWithOnDemandCertificateAndStepUp(List<PdfHandle> documentHandles, UserData userData) {
+    public SignatureResult signWithOnDemandCertificateAndStepUp(List<PdfHandle> documentHandles, UserData userData) {
         userData.validateYourself();
         Trace trace = new Trace(userData.getTransactionId());
         documentHandles.forEach(handle -> handle.validateYourself(trace));
@@ -125,16 +146,21 @@ public class AisClientImpl implements AisClient {
         } catch (Exception e) {
             throw new AisClientException("Failed to communicate with the AIS service and obtain the signature(s) - " + trace.getId(), e);
         }
-        checkThatResponseIsPending(signResponse, trace);
+        if (!checkThatResponseIsPending(signResponse)) {
+            return selectASignatureResultForResponse(signResponse, trace);
+        }
         // poll for signature status
         signResponse = pollUntilSignatureIsComplete(signResponse, userData, trace);
-        checkThatResponseIsSuccessful(signResponse, trace);
+        if (!checkThatResponseIsSuccessful(signResponse)) {
+            return selectASignatureResultForResponse(signResponse, trace);
+        }
         // finish the signing
         finishDocumentsSigning(documentsToSign, signResponse, SignatureMode.ON_DEMAND, trace);
+        return SignatureResult.SUCCESS;
     }
 
     @Override
-    public void timestamp(List<PdfHandle> documentHandles, UserData userData) {
+    public SignatureResult timestamp(List<PdfHandle> documentHandles, UserData userData) {
         userData.validateYourself();
         Trace trace = new Trace(userData.getTransactionId());
         documentHandles.forEach(handle -> handle.validateYourself(trace));
@@ -153,9 +179,12 @@ public class AisClientImpl implements AisClient {
         } catch (Exception e) {
             throw new AisClientException("Failed to communicate with the AIS service and obtain the signature(s) - " + trace.getId(), e);
         }
-        checkThatResponseIsSuccessful(signResponse, trace);
+        if (!checkThatResponseIsSuccessful(signResponse)) {
+            return selectASignatureResultForResponse(signResponse, trace);
+        }
         // finish the signing
         finishDocumentsSigning(documentsToSign, signResponse, SignatureMode.TIMESTAMP, trace);
+        return SignatureResult.SUCCESS;
     }
 
     @Override
@@ -199,9 +228,9 @@ public class AisClientImpl implements AisClient {
                                                      SignatureType signatureType, Trace trace) {
         try {
             logClient.info("Preparing {} signing for document: {} - {}",
-                            signatureMode.getFriendlyName(),
-                            documentHandle.getInputFromFile(),
-                            trace.getId());
+                           signatureMode.getFriendlyName(),
+                           documentHandle.getInputFromFile(),
+                           trace.getId());
             FileInputStream fileIn = new FileInputStream(documentHandle.getInputFromFile());
             FileOutputStream fileOut = new FileOutputStream(documentHandle.getOutputToFile());
 
@@ -224,18 +253,13 @@ public class AisClientImpl implements AisClient {
         return additionalProfiles;
     }
 
-    private void checkThatResponseIsSuccessful(AISSignResponse signResponse, Trace trace) {
-        if (!ResponseHelper.responseIsMajorSuccess(signResponse)) {
-            throw new AisClientException("Failure response received from AIS service: " +
-                                         ResponseHelper.getResponseResultSummary(signResponse) + " - " + trace.getId());
-        }
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
+    private boolean checkThatResponseIsSuccessful(AISSignResponse signResponse) {
+        return ResponseHelper.responseIsMajorSuccess(signResponse);
     }
 
-    private void checkThatResponseIsPending(AISSignResponse signResponse, Trace trace) {
-        if (!ResponseHelper.responseIsAsyncPending(signResponse)) {
-            throw new AisClientException("Failure response received from AIS service: " +
-                                         ResponseHelper.getResponseResultSummary(signResponse) + " - " + trace.getId());
-        }
+    private boolean checkThatResponseIsPending(AISSignResponse signResponse) {
+        return ResponseHelper.responseIsAsyncPending(signResponse);
     }
 
     private boolean checkForConsentUrlInTheResponse(AISSignResponse response, UserData userData, Trace trace) {
@@ -249,6 +273,55 @@ public class AisClientImpl implements AisClient {
             return true;
         }
         return false;
+    }
+
+    private SignatureResult selectASignatureResultForResponse(AISSignResponse response, Trace trace) {
+        if (response == null ||
+            response.getSignResponse() == null ||
+            response.getSignResponse().getResult() == null ||
+            response.getSignResponse().getResult().getResultMajor() == null) {
+            throw new AisClientException("Incomplete response received from the AIS service: " + response + " - " + trace.getId());
+        }
+        ResultMajorCode majorCode = ResultMajorCode.getByUri(response.getSignResponse().getResult().getResultMajor());
+        ResultMinorCode minorCode = ResultMinorCode.getByUri(response.getSignResponse().getResult().getResultMinor());
+        if (majorCode != null) {
+            switch (majorCode) {
+                case SUCCESS: {
+                    return SignatureResult.SUCCESS;
+                }
+                case PENDING: {
+                    return SignatureResult.USER_TIMEOUT;
+                }
+                case SUBSYSTEM_ERROR: {
+                    if (minorCode != null) {
+                        switch (minorCode) {
+                            case SERIAL_NUMBER_MISMATCH:
+                                return SignatureResult.SERIAL_NUMBER_MISMATCH;
+                            case STEPUP_TIMEOUT:
+                                return SignatureResult.USER_TIMEOUT;
+                            case STEPUP_CANCEL:
+                                return SignatureResult.USER_CANCEL;
+                            case SERVICE_ERROR:
+                                if (response.getSignResponse().getResult().getResultMessage() != null) {
+                                    ResultMessageCode messageCode = ResultMessageCode.getByUri(
+                                        response.getSignResponse().getResult().getResultMessage().get$());
+                                    if (messageCode != null) {
+                                        switch (messageCode) {
+                                            case INVALID_PASSWORD: // falls through
+                                            case INVALID_OTP:
+                                                return SignatureResult.USER_AUTHENTICATION_FAILED;
+                                        }
+                                    }
+                                }
+                                break;
+                        }
+                    }
+                    break;
+                }
+            }
+        }
+        throw new AisClientException("Failure response received from AIS service: " +
+                                     ResponseHelper.getResponseResultSummary(response) + " - " + trace.getId());
     }
 
     private AISSignResponse pollUntilSignatureIsComplete(AISSignResponse signResponse, UserData userData, Trace trace) {

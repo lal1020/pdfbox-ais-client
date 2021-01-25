@@ -1,5 +1,11 @@
 package com.swisscom.ais.client;
 
+import java.io.IOException;
+import java.util.Properties;
+
+import static com.swisscom.ais.client.utils.Utils.getIntNotNull;
+
+@SuppressWarnings("unused")
 public class AisClientConfiguration {
 
     private int signaturePollingIntervalInSeconds = 10;
@@ -28,6 +34,25 @@ public class AisClientConfiguration {
                                          + "configuration must be between 1 and 100 rounds");
         }
         this.signaturePollingRounds = signaturePollingRounds;
+    }
+
+    // ----------------------------------------------------------------------------------------------------
+
+    @SuppressWarnings("unused")
+    public void setFromPropertiesClasspathFile(String fileName) {
+        Properties properties;
+        try {
+            properties = new Properties();
+            properties.load(this.getClass().getResourceAsStream(fileName));
+        } catch (IOException exception) {
+            throw new AisClientException("Failed to load AIS client properties from classpath file: [" + fileName + "]", exception);
+        }
+        setFromProperties(properties);
+    }
+
+    public void setFromProperties(Properties properties) {
+        setSignaturePollingIntervalInSeconds(getIntNotNull(properties, "client.poll.intervalInSeconds"));
+        setSignaturePollingRounds(getIntNotNull(properties, "client.poll.rounds"));
     }
 
 }

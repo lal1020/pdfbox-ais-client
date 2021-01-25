@@ -8,20 +8,9 @@ import com.swisscom.ais.client.rest.model.signresp.ScSignatureObjects;
 
 public class ResponseHelper {
 
-    public static final String RESULT_MAJOR_SUCCESS = "urn:oasis:names:tc:dss:1.0:resultmajor:Success";
-    public static final String RESULT_MAJOR_ASYNC_PENDING = "urn:oasis:names:tc:dss:1.0:profiles:asynchronousprocessing:resultmajor:Pending";
-    public static final String RESULT_MAJOR_SUBSYSTEM_ERROR = "http://ais.swisscom.ch/1.0/resultmajor/SubsystemError";
-
-    public static final String RESULT_MINOR_REQUEST_UNEXPECTED_DATA = "http://ais.swisscom.ch/1.0/resultminor/UnexpectedData";
-    public static final String RESULT_MINOR_STEPUP_SERVICE = "http://ais.swisscom.ch/1.1/resultminor/subsystem/StepUp/service";
-    public static final String RESULT_MINOR_STEPUP_CANCEL = "http://ais.swisscom.ch/1.1/resultminor/subsystem/StepUp/cancel";
-    public static final String RESULT_MINOR_STEPUP_SN_MISMATCH = "http://ais.swisscom.ch/1.1/resultminor/subsystem/StepUp/SerialNumberMismatch";
-
-    // ----------------------------------------------------------------------------------------------------
-
     public static boolean responseIsAsyncPending(AISSignResponse response) {
         if (response != null && response.getSignResponse() != null && response.getSignResponse().getResult() != null) {
-            return ResponseHelper.RESULT_MAJOR_ASYNC_PENDING.equals(response.getSignResponse().getResult().getResultMajor());
+            return ResultMajorCode.PENDING.getUri().equals(response.getSignResponse().getResult().getResultMajor());
         }
         return false;
     }
@@ -30,7 +19,7 @@ public class ResponseHelper {
         return response != null &&
                response.getSignResponse() != null &&
                response.getSignResponse().getResult() != null &&
-               RESULT_MAJOR_SUCCESS.equals(response.getSignResponse().getResult().getResultMajor());
+               ResultMajorCode.SUCCESS.getUri().equals(response.getSignResponse().getResult().getResultMajor());
     }
 
     public static String getResponseResultSummary(AISSignResponse response) {
