@@ -1,5 +1,8 @@
-package com.swisscom.ais.client;
+package com.swisscom.ais.client.impl;
 
+import com.swisscom.ais.client.AisClient;
+import com.swisscom.ais.client.AisClientConfiguration;
+import com.swisscom.ais.client.AisClientException;
 import com.swisscom.ais.client.model.PdfHandle;
 import com.swisscom.ais.client.model.SignatureMode;
 import com.swisscom.ais.client.model.SignatureResult;
@@ -9,7 +12,10 @@ import com.swisscom.ais.client.rest.model.*;
 import com.swisscom.ais.client.rest.model.pendingreq.AISPendingRequest;
 import com.swisscom.ais.client.rest.model.signreq.AISSignRequest;
 import com.swisscom.ais.client.rest.model.signresp.AISSignResponse;
+import com.swisscom.ais.client.rest.model.signresp.ScCRLs;
 import com.swisscom.ais.client.rest.model.signresp.ScExtendedSignatureObject;
+import com.swisscom.ais.client.rest.model.signresp.ScOCSPs;
+import com.swisscom.ais.client.rest.model.signresp.ScRevocationInformation;
 import com.swisscom.ais.client.utils.Loggers;
 import com.swisscom.ais.client.utils.Trace;
 
@@ -61,6 +67,7 @@ public class AisClientImpl implements AisClient {
         List<PdfDocument> documentsToSign = prepareMultipleDocumentsForSigning(documentHandles,
                                                                                SignatureMode.STATIC,
                                                                                SignatureType.CMS,
+                                                                               userData,
                                                                                trace);
         // start the signature
         AISSignResponse signResponse;
@@ -90,6 +97,7 @@ public class AisClientImpl implements AisClient {
         List<PdfDocument> documentsToSign = prepareMultipleDocumentsForSigning(documentHandles,
                                                                                SignatureMode.ON_DEMAND,
                                                                                SignatureType.CMS,
+                                                                               userData,
                                                                                trace);
         // start the signature
         AISSignResponse signResponse;
@@ -103,18 +111,6 @@ public class AisClientImpl implements AisClient {
         } catch (Exception e) {
             throw new AisClientException("Failed to communicate with the AIS service and obtain the signature(s) - " + trace.getId(), e);
         }
-//        if (!checkThatResponseIsPending(signResponse)) {
-//            return selectASignatureResultForResponse(signResponse, trace);
-//        }
-//        // poll for signature status
-//        signResponse = pollUntilSignatureIsComplete(signResponse, userData, trace);
-//        if (!checkThatResponseIsSuccessful(signResponse)) {
-//            return selectASignatureResultForResponse(signResponse, trace);
-//        }
-//        // finish the signing
-//        finishDocumentsSigning(documentsToSign, signResponse, SignatureMode.ON_DEMAND, trace);
-//        return SignatureResult.SUCCESS;
-
         if (!checkThatResponseIsSuccessful(signResponse)) {
             return selectASignatureResultForResponse(signResponse, trace);
         }
@@ -132,6 +128,7 @@ public class AisClientImpl implements AisClient {
         List<PdfDocument> documentsToSign = prepareMultipleDocumentsForSigning(documentHandles,
                                                                                SignatureMode.ON_DEMAND,
                                                                                SignatureType.CMS,
+                                                                               userData,
                                                                                trace);
         // start the signature
         AISSignResponse signResponse;
@@ -168,6 +165,7 @@ public class AisClientImpl implements AisClient {
         List<PdfDocument> documentsToSign = prepareMultipleDocumentsForSigning(documentHandles,
                                                                                SignatureMode.TIMESTAMP,
                                                                                SignatureType.TIMESTAMP,
+                                                                               userData,
                                                                                trace);
         AISSignResponse signResponse;
         try {
@@ -217,15 +215,19 @@ public class AisClientImpl implements AisClient {
     private List<PdfDocument> prepareMultipleDocumentsForSigning(List<PdfHandle> documentHandles,
                                                                  SignatureMode signatureMode,
                                                                  SignatureType signatureType,
+                                                                 UserData userData,
                                                                  Trace trace) {
         return documentHandles
             .stream()
-            .map(handle -> prepareOneDocumentForSigning(handle, signatureMode, signatureType, trace))
+            .map(handle -> prepareOneDocumentForSigning(handle, signatureMode, signatureType, userData, trace))
             .collect(Collectors.toList());
     }
 
-    private PdfDocument prepareOneDocumentForSigning(PdfHandle documentHandle, SignatureMode signatureMode,
-                                                     SignatureType signatureType, Trace trace) {
+    private PdfDocument prepareOneDocumentForSigning(PdfHandle documentHandle,
+                                                     SignatureMode signatureMode,
+                                                     SignatureType signatureType,
+                                                     UserData userData,
+                                                     Trace trace) {
         try {
             logClient.info("Preparing {} signing for document: {} - {}",
                            signatureMode.getFriendlyName(),
@@ -235,7 +237,7 @@ public class AisClientImpl implements AisClient {
             FileOutputStream fileOut = new FileOutputStream(documentHandle.getOutputToFile());
 
             PdfDocument newDocument = new PdfDocument(documentHandle.getOutputToFile(), fileIn, fileOut);
-            newDocument.prepareForSigning(DigestAlgorithm.SHA512, signatureType);
+            newDocument.prepareForSigning(DigestAlgorithm.SHA512, signatureType, userData);
             return newDocument;
         } catch (Exception e) {
             throw new AisClientException("Failed to prepare the document [" +
@@ -350,41 +352,40 @@ public class AisClientImpl implements AisClient {
 
     private void finishDocumentsSigning(List<PdfDocument> documentsToSign, AISSignResponse signResponse,
                                         SignatureMode signatureMode, Trace trace) {
-        try {
-            if (signatureMode == SignatureMode.TIMESTAMP) {
-                if (documentsToSign.size() == 1) {
-                    PdfDocument document = documentsToSign.get(0);
-                    logClient.info("Finalizing the timestamping for document: {} - {}", document.getName(), trace.getId());
-                    String base64TimestampToken = signResponse.getSignResponse().getSignatureObject().getTimestamp().getRFC3161TimeStampToken();
-                    document.getPbSigningSupport().setSignature(Base64.getDecoder().decode(base64TimestampToken));
-                    document.close();
-                } else {
-                    for (PdfDocument document : documentsToSign) {
-                        logClient.info("Finalizing the timestamping for document: {} - {}", document.getName(), trace.getId());
-                        ScExtendedSignatureObject signatureObject = ResponseHelper.getSignatureObjectByDocumentId(document.getId(), signResponse);
-                        document.getPbSigningSupport().setSignature(
-                            Base64.getDecoder().decode(signatureObject.getTimestamp().getRFC3161TimeStampToken()));
-                        document.close();
-                    }
-                }
+        if (signatureMode == SignatureMode.TIMESTAMP) {
+            if (documentsToSign.size() == 1) {
+                PdfDocument document = documentsToSign.get(0);
+                logClient.info("Finalizing the timestamping for document: {} - {}", document.getName(), trace.getId());
+                String base64TimestampToken = signResponse.getSignResponse().getSignatureObject().getTimestamp().getRFC3161TimeStampToken();
+                // TODO
+                // document.finishSignature(Base64.getDecoder().decode(base64TimestampToken), trace);
             } else {
-                if (documentsToSign.size() == 1) {
-                    PdfDocument document = documentsToSign.get(0);
-                    logClient.info("Finalizing the signature for document: {} - {}", document.getName(), trace.getId());
-                    document.getPbSigningSupport().setSignature(
-                        Base64.getDecoder().decode(signResponse.getSignResponse().getSignatureObject().getBase64Signature().get$()));
-                    document.close();
-                } else {
-                    for (PdfDocument document : documentsToSign) {
-                        logClient.info("Finalizing the signature for document: {} - {}", document.getName(), trace.getId());
-                        ScExtendedSignatureObject signatureObject = ResponseHelper.getSignatureObjectByDocumentId(document.getId(), signResponse);
-                        document.getPbSigningSupport().setSignature(Base64.getDecoder().decode(signatureObject.getBase64Signature().get$()));
-                        document.close();
-                    }
+                for (PdfDocument document : documentsToSign) {
+                    logClient.info("Finalizing the timestamping for document: {} - {}", document.getName(), trace.getId());
+                    ScExtendedSignatureObject signatureObject = ResponseHelper.getSignatureObjectByDocumentId(document.getId(), signResponse);
+                    // TODO
+                    //  document.finishSignature(Base64.getDecoder().decode(signatureObject.getTimestamp().getRFC3161TimeStampToken()), trace);
                 }
             }
-        } catch (Exception e) {
-            throw new AisClientException("Failed to embed the signature(s) in the document(s) and close the streams - " + trace.getId(), e);
+        } else {
+            if (documentsToSign.size() == 1) {
+                PdfDocument document = documentsToSign.get(0);
+                logClient.info("Finalizing the signature for document: {} - {}", document.getName(), trace.getId());
+                document.finishSignature(
+                    Base64.getDecoder().decode(signResponse.getSignResponse().getSignatureObject().getBase64Signature().get$()),
+                    Base64.getDecoder()
+                        .decode(signResponse.getSignResponse().getOptionalOutputs().getScRevocationInformation().getScCRLs().getScCRL()),
+                    Base64.getDecoder()
+                        .decode(signResponse.getSignResponse().getOptionalOutputs().getScRevocationInformation().getScOCSPs().getScOCSP()),
+                    trace);
+            } else {
+                for (PdfDocument document : documentsToSign) {
+                    logClient.info("Finalizing the signature for document: {} - {}", document.getName(), trace.getId());
+                    ScExtendedSignatureObject signatureObject = ResponseHelper.getSignatureObjectByDocumentId(document.getId(), signResponse);
+                    // TODO
+                    // document.finishSignature(Base64.getDecoder().decode(signatureObject.getBase64Signature().get$()), trace);
+                }
+            }
         }
     }
 

@@ -23,6 +23,11 @@ public class UserData {
     private String stepUpMessage;
     private String stepUpSerialNumber;
 
+    private String signatureName;
+    private String signatureReason;
+    private String signatureLocation;
+    private String signatureContactInfo;
+
     private ConsentUrlCallback consentUrlCallback;
 
     private boolean addTimestamp = true;
@@ -141,6 +146,38 @@ public class UserData {
         this.stepUpSerialNumber = stepUpSerialNumber;
     }
 
+    public String getSignatureName() {
+        return signatureName;
+    }
+
+    public void setSignatureName(String signatureName) {
+        this.signatureName = signatureName;
+    }
+
+    public String getSignatureReason() {
+        return signatureReason;
+    }
+
+    public void setSignatureReason(String signatureReason) {
+        this.signatureReason = signatureReason;
+    }
+
+    public String getSignatureLocation() {
+        return signatureLocation;
+    }
+
+    public void setSignatureLocation(String signatureLocation) {
+        this.signatureLocation = signatureLocation;
+    }
+
+    public String getSignatureContactInfo() {
+        return signatureContactInfo;
+    }
+
+    public void setSignatureContactInfo(String signatureContactInfo) {
+        this.signatureContactInfo = signatureContactInfo;
+    }
+
     // ----------------------------------------------------------------------------------------------------
 
     public void setFromPropertiesClasspathFile(String fileName) {
@@ -173,6 +210,10 @@ public class UserData {
         stepUpMessage = getStringNotNull(properties, "signature.stepUp.message");
         stepUpSerialNumber = getStringNotNull(properties, "signature.stepUp.serialNumber");
         distinguishedName = getStringNotNull(properties, "signature.distinguishedName");
+        signatureName = properties.getProperty("signature.name");
+        signatureReason = properties.getProperty("signature.reason");
+        signatureLocation = properties.getProperty("signature.location");
+        signatureContactInfo = properties.getProperty("signature.contactInfo");
     }
 
     public void validateYourself() {

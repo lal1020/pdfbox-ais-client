@@ -1,7 +1,7 @@
 package com.swisscom.ais;
 
 import com.swisscom.ais.client.AisClientConfiguration;
-import com.swisscom.ais.client.AisClientImpl;
+import com.swisscom.ais.client.impl.AisClientImpl;
 import com.swisscom.ais.client.model.PdfHandle;
 import com.swisscom.ais.client.model.SignatureResult;
 import com.swisscom.ais.client.model.UserData;

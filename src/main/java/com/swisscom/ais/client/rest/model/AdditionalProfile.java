@@ -3,7 +3,7 @@ package com.swisscom.ais.client.rest.model;
 public enum AdditionalProfile {
 
     /**
-     * The signature may be processed in asynchronous mode. The response may be a Pending5 result that
+     * The signature may be processed in asynchronous mode. The response may be a Pending result that
      * contains the ResponseID. The client must be able to poll the result with a PendingRequest.
      */
     ASYNC("urn:oasis:names:tc:dss:1.0:profiles:asynchronousprocessing"),

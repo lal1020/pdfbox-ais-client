@@ -1,5 +1,6 @@
 package com.swisscom.ais.client.rest.model;
 
+import com.swisscom.ais.client.impl.PdfDocument;
 import com.swisscom.ais.client.model.RevocationInformation;
 import com.swisscom.ais.client.model.SignatureStandard;
 import com.swisscom.ais.client.model.UserData;

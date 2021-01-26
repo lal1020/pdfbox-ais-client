@@ -1,5 +1,6 @@
 package com.swisscom.ais.client;
 
+import com.swisscom.ais.client.impl.AisClientImpl;
 import com.swisscom.ais.client.model.PdfHandle;
 import com.swisscom.ais.client.model.UserData;
 import com.swisscom.ais.client.rest.RestClientConfiguration;
