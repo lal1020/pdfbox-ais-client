@@ -8,6 +8,7 @@ import com.swisscom.ais.client.model.SignatureStandard;
 import com.swisscom.ais.client.model.UserData;
 import com.swisscom.ais.client.rest.RestClientConfiguration;
 import com.swisscom.ais.client.rest.RestClientImpl;
+import com.swisscom.ais.client.rest.model.DigestAlgorithm;
 
 import java.util.Collections;
 import java.util.Properties;
@@ -34,6 +35,7 @@ public class TestOnDemandSignatureWithStepUp {
             PdfHandle document = new PdfHandle();
             document.setInputFromFile(properties.getProperty("local.test.inputFile"));
             document.setOutputToFile(properties.getProperty("local.test.outputFilePrefix") + System.currentTimeMillis() + ".pdf");
+            document.setDigestAlgorithm(DigestAlgorithm.SHA256);
 
             SignatureResult result = aisClient.signWithOnDemandCertificateAndStepUp(Collections.singletonList(document), userData);
             System.out.println("Final result: " + result);
