@@ -31,10 +31,10 @@
             },
             "sc.RevocationInformation": {
                 "sc.CRLs": {
-                    "sc.CRL": "CRL_#1"
+                    "sc.CRL": "MII...NrI="
                 },
                 "sc.OCSPs": {
-                    "sc.OCSP": "OCSP_#1"
+                    "sc.OCSP": "MII..iQ="
                 }
             }
         },

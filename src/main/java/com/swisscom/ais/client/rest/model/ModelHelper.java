@@ -71,15 +71,19 @@ public class ModelHelper {
             certificateRequest.setScStepUpAuthorisation(stepUpAuthorisation);
         }
 
+        ScAddRevocationInformation addRevocationInformation = new ScAddRevocationInformation();
+        if (userData.getAddRevocationInformation() != RevocationInformation.DEFAULT) {
+            addRevocationInformation.setType(userData.getAddRevocationInformation().getValue());
+        }
+
         OptionalInputs optionalInputs = new OptionalInputs();
         optionalInputs.setAddTimestamp(addTimestamp);
         optionalInputs.setAdditionalProfile(additionalProfiles.stream().map(AdditionalProfile::getUri).collect(Collectors.toList()));
         optionalInputs.setClaimedIdentity(claimedIdentity);
         optionalInputs.setSignatureType(signatureType.getUri());
         optionalInputs.setScCertificateRequest(certificateRequest);
-        if (userData.getAddRevocationInformation() != RevocationInformation.DEFAULT) {
-            optionalInputs.setScAddRevocationInformation(userData.getAddRevocationInformation().getValue());
-        }
+        optionalInputs.setScAddRevocationInformation(null);
+        optionalInputs.setScAddRevocationInformation(addRevocationInformation);
         if (userData.getSignatureStandard() != SignatureStandard.DEFAULT) {
             optionalInputs.setScSignatureStandard(userData.getSignatureStandard().getValue());
         }

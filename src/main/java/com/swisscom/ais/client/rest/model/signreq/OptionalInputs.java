@@ -28,7 +28,7 @@ public class OptionalInputs {
     @JsonProperty("SignatureType")
     private String signatureType;
     @JsonProperty("sc.AddRevocationInformation")
-    private String scAddRevocationInformation;
+    private ScAddRevocationInformation scAddRevocationInformation;
     @JsonProperty("sc:SignatureStandard")
     private String scSignatureStandard;
     @JsonProperty("sc.CertificateRequest")
@@ -95,16 +95,16 @@ public class OptionalInputs {
     }
 
     @JsonProperty("sc.AddRevocationInformation")
-    public String getScAddRevocationInformation() {
+    public ScAddRevocationInformation getScAddRevocationInformation() {
         return scAddRevocationInformation;
     }
 
     @JsonProperty("sc.AddRevocationInformation")
-    public void setScAddRevocationInformation(String scAddRevocationInformation) {
+    public void setScAddRevocationInformation(ScAddRevocationInformation scAddRevocationInformation) {
         this.scAddRevocationInformation = scAddRevocationInformation;
     }
 
-    public OptionalInputs withScAddRevocationInformation(String scAddRevocationInformation) {
+    public OptionalInputs withScAddRevocationInformation(ScAddRevocationInformation scAddRevocationInformation) {
         this.scAddRevocationInformation = scAddRevocationInformation;
         return this;
     }

@@ -28,7 +28,7 @@ public class TestOnDemandSignatureWithStepUp {
             UserData userData = new UserData();
             userData.setFromProperties(properties);
             userData.setConsentUrlCallback((consentUrl, userData1) -> System.out.println("Consent URL: " + consentUrl));
-            userData.setAddRevocationInformation(RevocationInformation.BOTH);
+            userData.setAddRevocationInformation(RevocationInformation.PADES);
             userData.setSignatureStandard(SignatureStandard.PADES);
 
             PdfHandle document = new PdfHandle();

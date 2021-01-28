@@ -12,10 +12,7 @@ import com.swisscom.ais.client.rest.model.*;
 import com.swisscom.ais.client.rest.model.pendingreq.AISPendingRequest;
 import com.swisscom.ais.client.rest.model.signreq.AISSignRequest;
 import com.swisscom.ais.client.rest.model.signresp.AISSignResponse;
-import com.swisscom.ais.client.rest.model.signresp.ScCRLs;
 import com.swisscom.ais.client.rest.model.signresp.ScExtendedSignatureObject;
-import com.swisscom.ais.client.rest.model.signresp.ScOCSPs;
-import com.swisscom.ais.client.rest.model.signresp.ScRevocationInformation;
 import com.swisscom.ais.client.utils.Loggers;
 import com.swisscom.ais.client.utils.Trace;
 
@@ -89,6 +86,7 @@ public class AisClientImpl implements AisClient {
     }
 
     @Override
+    @SuppressWarnings("DuplicatedCode")
     public SignatureResult signWithOnDemandCertificate(List<PdfHandle> documentHandles, UserData userData) {
         userData.validateYourself();
         Trace trace = new Trace(userData.getTransactionId());
@@ -120,6 +118,7 @@ public class AisClientImpl implements AisClient {
     }
 
     @Override
+    @SuppressWarnings("DuplicatedCode")
     public SignatureResult signWithOnDemandCertificateAndStepUp(List<PdfHandle> documentHandles, UserData userData) {
         userData.validateYourself();
         Trace trace = new Trace(userData.getTransactionId());
@@ -357,14 +356,12 @@ public class AisClientImpl implements AisClient {
                 PdfDocument document = documentsToSign.get(0);
                 logClient.info("Finalizing the timestamping for document: {} - {}", document.getName(), trace.getId());
                 String base64TimestampToken = signResponse.getSignResponse().getSignatureObject().getTimestamp().getRFC3161TimeStampToken();
-                // TODO
-                // document.finishSignature(Base64.getDecoder().decode(base64TimestampToken), trace);
+                document.finishSignature(Base64.getDecoder().decode(base64TimestampToken), trace);
             } else {
                 for (PdfDocument document : documentsToSign) {
                     logClient.info("Finalizing the timestamping for document: {} - {}", document.getName(), trace.getId());
                     ScExtendedSignatureObject signatureObject = ResponseHelper.getSignatureObjectByDocumentId(document.getId(), signResponse);
-                    // TODO
-                    //  document.finishSignature(Base64.getDecoder().decode(signatureObject.getTimestamp().getRFC3161TimeStampToken()), trace);
+                    document.finishSignature(Base64.getDecoder().decode(signatureObject.getTimestamp().getRFC3161TimeStampToken()), trace);
                 }
             }
         } else {
@@ -372,18 +369,12 @@ public class AisClientImpl implements AisClient {
                 PdfDocument document = documentsToSign.get(0);
                 logClient.info("Finalizing the signature for document: {} - {}", document.getName(), trace.getId());
                 document.finishSignature(
-                    Base64.getDecoder().decode(signResponse.getSignResponse().getSignatureObject().getBase64Signature().get$()),
-                    Base64.getDecoder()
-                        .decode(signResponse.getSignResponse().getOptionalOutputs().getScRevocationInformation().getScCRLs().getScCRL()),
-                    Base64.getDecoder()
-                        .decode(signResponse.getSignResponse().getOptionalOutputs().getScRevocationInformation().getScOCSPs().getScOCSP()),
-                    trace);
+                    Base64.getDecoder().decode(signResponse.getSignResponse().getSignatureObject().getBase64Signature().get$()), trace);
             } else {
                 for (PdfDocument document : documentsToSign) {
                     logClient.info("Finalizing the signature for document: {} - {}", document.getName(), trace.getId());
                     ScExtendedSignatureObject signatureObject = ResponseHelper.getSignatureObjectByDocumentId(document.getId(), signResponse);
-                    // TODO
-                    // document.finishSignature(Base64.getDecoder().decode(signatureObject.getBase64Signature().get$()), trace);
+                    document.finishSignature(Base64.getDecoder().decode(signatureObject.getBase64Signature().get$()), trace);
                 }
             }
         }

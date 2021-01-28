@@ -35,8 +35,10 @@
                 "Name": "{{claimedidentity}}:OnDemand-Advanced"
             },
             "SignatureType": "urn:ietf:rfc:3369",
-            "sc.AddRevocationInformation": "",
-            "sc:SignatureStandard": "PADES",
+            "sc.AddRevocationInformation": {
+                "@Type": "PAdES"
+            },
+            "sc:SignatureStandard": "PAdES",
             "sc.CertificateRequest": {
                 "sc.DistinguishedName": "cn=TEST User, givenname=Max, surname=Maximus, c=US, serialnumber=abcdefabcdefabcdefabcdefabcdef",
                 "sc.StepUpAuthorisation": {

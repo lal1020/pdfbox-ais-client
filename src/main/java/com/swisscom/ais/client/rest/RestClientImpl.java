@@ -1,5 +1,6 @@
 package com.swisscom.ais.client.rest;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -69,6 +70,7 @@ public class RestClientImpl implements RestClient {
         Security.addProvider(new BouncyCastleProvider());
         jacksonMapper = new ObjectMapper();
         jacksonMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        jacksonMapper.setSerializationInclusion(JsonInclude.Include.USE_DEFAULTS);
 
         SSLConnectionSocketFactory sslConnectionSocketFactory;
         try {

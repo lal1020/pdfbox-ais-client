@@ -24,11 +24,9 @@ public class ResponseHelper {
 
     public static String getResponseResultSummary(AISSignResponse response) {
         Result result = response.getSignResponse().getResult();
-        StringBuilder builder = new StringBuilder(300);
-        builder.append("Major=[").append(result.getResultMajor()).append("], ");
-        builder.append("Minor=[").append(result.getResultMinor()).append("], ");
-        builder.append("Message=[").append(result.getResultMessage()).append(']');
-        return builder.toString();
+        return "Major=[" + result.getResultMajor() + "], "
+               + "Minor=[" + result.getResultMinor() + "], "
+               + "Message=[" + result.getResultMessage() + ']';
     }
 
     public static boolean responseHasStepUpConsentUrl(AISSignResponse response) {
