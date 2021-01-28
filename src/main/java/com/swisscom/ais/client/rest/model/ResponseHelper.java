@@ -6,6 +6,9 @@ import com.swisscom.ais.client.rest.model.signresp.Result;
 import com.swisscom.ais.client.rest.model.signresp.ScExtendedSignatureObject;
 import com.swisscom.ais.client.rest.model.signresp.ScSignatureObjects;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class ResponseHelper {
 
     public static boolean responseIsAsyncPending(AISSignResponse response) {
@@ -54,6 +57,38 @@ public class ResponseHelper {
             }
         }
         throw new AisClientException("Invalid AIS response. Cannot find the extended signature object for document with ID=[" + documentId + "]");
+    }
+
+    public static List<String> getResponseScCrlList(AISSignResponse response) {
+        List<String> result = new ArrayList<>();
+        if (response != null &&
+            response.getSignResponse() != null &&
+            response.getSignResponse().getOptionalOutputs() != null &&
+            response.getSignResponse().getOptionalOutputs().getScRevocationInformation() != null &&
+            response.getSignResponse().getOptionalOutputs().getScRevocationInformation().getScCRLs() != null) {
+
+            String crl = response.getSignResponse().getOptionalOutputs().getScRevocationInformation().getScCRLs().getScCRL();
+            if (crl != null) {
+                result.add(crl);
+            }
+        }
+        return result;
+    }
+
+    public static List<String> getResponseScOcspList(AISSignResponse response) {
+        List<String> result = new ArrayList<>();
+        if (response != null &&
+            response.getSignResponse() != null &&
+            response.getSignResponse().getOptionalOutputs() != null &&
+            response.getSignResponse().getOptionalOutputs().getScRevocationInformation() != null &&
+            response.getSignResponse().getOptionalOutputs().getScRevocationInformation().getScOCSPs() != null) {
+
+            String ocsp = response.getSignResponse().getOptionalOutputs().getScRevocationInformation().getScOCSPs().getScOCSP();
+            if (ocsp != null) {
+                result.add(ocsp);
+            }
+        }
+        return result;
     }
 
 }

@@ -47,6 +47,16 @@ public class Utils {
         }
     }
 
+    public static void valueNotNull(Object value, String errorMessage, Trace trace) throws AisClientException {
+        if (value == null) {
+            if (trace == null) {
+                throw new AisClientException(errorMessage);
+            } else {
+                throw new AisClientException(errorMessage + " - " + trace.getId());
+            }
+        }
+    }
+
     public static void valueBetween(int value, int minValue, int maxValue, String errorMessage, Trace trace) throws AisClientException {
         if (value < minValue || value > maxValue) {
             if (trace == null) {

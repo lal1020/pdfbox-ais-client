@@ -1,5 +1,7 @@
 package com.swisscom.ais.client.rest.model;
 
+import com.swisscom.ais.client.AisClientException;
+
 public enum DigestAlgorithm {
 
     SHA256("SHA-256", "http://www.w3.org/2001/04/xmlenc#sha256"),
@@ -33,6 +35,15 @@ public enum DigestAlgorithm {
 
     public String getDigestUri() {
         return digestUri;
+    }
+
+    public static DigestAlgorithm getByDigestAlgorithm(String algo) {
+        for (DigestAlgorithm currentAlgo : values()) {
+            if (currentAlgo.getDigestAlgorithm().equalsIgnoreCase(algo)) {
+                return currentAlgo;
+            }
+        }
+        throw new AisClientException("Invalid digest algorithm: " + algo);
     }
 
 }

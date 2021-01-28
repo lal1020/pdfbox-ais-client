@@ -15,6 +15,7 @@ import org.apache.pdfbox.pdmodel.interactive.digitalsignature.ExternalSigningSup
 import org.apache.pdfbox.pdmodel.interactive.digitalsignature.PDSignature;
 import org.apache.pdfbox.pdmodel.interactive.digitalsignature.SignatureOptions;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -22,12 +23,15 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
 import java.util.Calendar;
+import java.util.List;
 
 public class PdfDocument {
 
     private final InputStream contentIn;
     private final OutputStream contentOut;
+    private final ByteArrayOutputStream inMemoryStream;
     private final String name;
+    private final Trace trace;
 
     private String id;
     private PDDocument pdDocument;
@@ -37,10 +41,12 @@ public class PdfDocument {
 
     // ----------------------------------------------------------------------------------------------------
 
-    public PdfDocument(String name, InputStream contentIn, OutputStream contentOut) {
+    public PdfDocument(String name, InputStream contentIn, OutputStream contentOut, Trace trace) {
         this.name = name;
         this.contentIn = contentIn;
         this.contentOut = contentOut;
+        this.inMemoryStream = new ByteArrayOutputStream();
+        this.trace = trace;
     }
 
     public void prepareForSigning(DigestAlgorithm digestAlgorithm,
@@ -74,16 +80,11 @@ public class PdfDocument {
         pdSignature.setLocation(userData.getSignatureLocation());
         pdSignature.setContactInfo(userData.getSignatureContactInfo());
 
-        // Optional: certify
-        if (accessPermissions == 0) {
-            SigUtils.setMDPPermission(pdDocument, pdSignature, 2);
-        }
-
         SignatureOptions options = new SignatureOptions();
-        options.setPreferredSignatureSize(signatureType.getEstimatedSignatureSizeInBytes() + 10000);
+        options.setPreferredSignatureSize(signatureType.getEstimatedSignatureSizeInBytes());
 
         pdDocument.addSignature(pdSignature, options);
-        pbSigningSupport = pdDocument.saveIncrementalForExternalSigning(contentOut);
+        pbSigningSupport = pdDocument.saveIncrementalForExternalSigning(inMemoryStream);
 
         MessageDigest digest = MessageDigest.getInstance(digestAlgorithm.getDigestAlgorithm());
         byte[] contentToSign = IOUtils.toByteArray(pbSigningSupport.getContent());
@@ -91,13 +92,27 @@ public class PdfDocument {
         base64HashToSign = Base64.getEncoder().encodeToString(hashToSign);
     }
 
-    public void finishSignature(byte[] signatureContent, Trace trace) {
+    public void finishSignature(byte[] signatureContent, List<byte[]> crlEntries, List<byte[]> ocspEntries) {
         try {
             pbSigningSupport.setSignature(signatureContent);
             pdDocument.close();
             contentIn.close();
+            inMemoryStream.close();
+
+            // for now, both set of entries must be available for extending the PDF
+            // perhaps only one of them could also be extended?
+            if (crlEntries != null && ocspEntries != null) {
+                pdDocument = PDDocument.load(inMemoryStream.toByteArray());
+
+                CrlOcspExtender metadata = new CrlOcspExtender(pdDocument, signatureContent, trace);
+                metadata.extendPdfWithCrlAndOcsp(crlEntries, ocspEntries);
+
+                pdDocument.saveIncremental(contentOut);
+                pdDocument.close();
+            } else {
+                contentOut.write(inMemoryStream.toByteArray());
+            }
             contentOut.close();
-            // no support yet for embedding OCSP and CRL in the final PDF
         } catch (Exception e) {
             throw new AisClientException("Failed to embed the signature(s) in the document(s) and close the streams - " + trace.getId(), e);
         }

@@ -235,8 +235,8 @@ public class AisClientImpl implements AisClient {
             FileInputStream fileIn = new FileInputStream(documentHandle.getInputFromFile());
             FileOutputStream fileOut = new FileOutputStream(documentHandle.getOutputToFile());
 
-            PdfDocument newDocument = new PdfDocument(documentHandle.getOutputToFile(), fileIn, fileOut);
-            newDocument.prepareForSigning(DigestAlgorithm.SHA512, signatureType, userData);
+            PdfDocument newDocument = new PdfDocument(documentHandle.getOutputToFile(), fileIn, fileOut, trace);
+            newDocument.prepareForSigning(documentHandle.getDigestAlgorithm(), signatureType, userData);
             return newDocument;
         } catch (Exception e) {
             throw new AisClientException("Failed to prepare the document [" +
@@ -351,17 +351,29 @@ public class AisClientImpl implements AisClient {
 
     private void finishDocumentsSigning(List<PdfDocument> documentsToSign, AISSignResponse signResponse,
                                         SignatureMode signatureMode, Trace trace) {
+        List<String> base64EncodedCrls = ResponseHelper.getResponseScCrlList(signResponse);
+        List<byte[]> crlEntries = null;
+        if (base64EncodedCrls.size() > 0) {
+            crlEntries = base64EncodedCrls.stream().map(crl -> Base64.getDecoder().decode(crl)).collect(Collectors.toList());
+        }
+        List<String> base64EncodedOcsps = ResponseHelper.getResponseScOcspList(signResponse);
+        List<byte[]> ocspEntries = null;
+        if (base64EncodedOcsps.size() > 0) {
+            ocspEntries = base64EncodedOcsps.stream().map(ocsp -> Base64.getDecoder().decode(ocsp)).collect(Collectors.toList());
+        }
+
         if (signatureMode == SignatureMode.TIMESTAMP) {
             if (documentsToSign.size() == 1) {
                 PdfDocument document = documentsToSign.get(0);
                 logClient.info("Finalizing the timestamping for document: {} - {}", document.getName(), trace.getId());
                 String base64TimestampToken = signResponse.getSignResponse().getSignatureObject().getTimestamp().getRFC3161TimeStampToken();
-                document.finishSignature(Base64.getDecoder().decode(base64TimestampToken), trace);
+                document.finishSignature(Base64.getDecoder().decode(base64TimestampToken), crlEntries, ocspEntries);
             } else {
                 for (PdfDocument document : documentsToSign) {
                     logClient.info("Finalizing the timestamping for document: {} - {}", document.getName(), trace.getId());
                     ScExtendedSignatureObject signatureObject = ResponseHelper.getSignatureObjectByDocumentId(document.getId(), signResponse);
-                    document.finishSignature(Base64.getDecoder().decode(signatureObject.getTimestamp().getRFC3161TimeStampToken()), trace);
+                    document.finishSignature(Base64.getDecoder().decode(signatureObject.getTimestamp().getRFC3161TimeStampToken()),
+                                             crlEntries, ocspEntries);
                 }
             }
         } else {
@@ -369,12 +381,14 @@ public class AisClientImpl implements AisClient {
                 PdfDocument document = documentsToSign.get(0);
                 logClient.info("Finalizing the signature for document: {} - {}", document.getName(), trace.getId());
                 document.finishSignature(
-                    Base64.getDecoder().decode(signResponse.getSignResponse().getSignatureObject().getBase64Signature().get$()), trace);
+                    Base64.getDecoder().decode(signResponse.getSignResponse().getSignatureObject().getBase64Signature().get$()),
+                    crlEntries, ocspEntries);
             } else {
                 for (PdfDocument document : documentsToSign) {
                     logClient.info("Finalizing the signature for document: {} - {}", document.getName(), trace.getId());
                     ScExtendedSignatureObject signatureObject = ResponseHelper.getSignatureObjectByDocumentId(document.getId(), signResponse);
-                    document.finishSignature(Base64.getDecoder().decode(signatureObject.getBase64Signature().get$()), trace);
+                    document.finishSignature(Base64.getDecoder().decode(signatureObject.getBase64Signature().get$()),
+                                             crlEntries, ocspEntries);
                 }
             }
         }
