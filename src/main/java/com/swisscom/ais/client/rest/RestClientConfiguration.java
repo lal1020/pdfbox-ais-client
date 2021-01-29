@@ -1,6 +1,8 @@
 package com.swisscom.ais.client.rest;
 
 import com.swisscom.ais.client.AisClientException;
+import com.swisscom.ais.client.utils.ConfigurationProvider;
+import com.swisscom.ais.client.utils.ConfigurationProviderPropertiesImpl;
 
 import java.io.IOException;
 import java.util.Properties;
@@ -150,16 +152,19 @@ public class RestClientConfiguration {
     }
 
     public void setFromProperties(Properties properties) {
-        setRestServiceSignUrl(getStringNotNull(properties, "server.rest.signUrl"));
-        setRestServicePendingUrl(getStringNotNull(properties, "server.rest.pendingUrl"));
-        setClientKeyFile(getStringNotNull(properties, "client.auth.keyFile"));
-        setClientKeyPassword(getStringNotNull(properties, "client.auth.keyPassword"));
-        setClientCertificateFile(getStringNotNull(properties, "client.cert.file"));
-        setServerCertificateFile(getStringNotNull(properties, "server.cert.file"));
-        setMaxTotalConnections(getIntNotNull(properties, "client.http.maxTotalConnections"));
-        setMaxConnectionsPerRoute(getIntNotNull(properties, "client.http.maxConnectionsPerRoute"));
-        setConnectionTimeoutInSec(getIntNotNull(properties, "client.http.connectionTimeoutInSeconds"));
-        setResponseTimeoutInSec(getIntNotNull(properties, "client.http.responseTimeoutInSeconds"));
+        setFromConfigurationProvider(new ConfigurationProviderPropertiesImpl(properties));
     }
 
+    public void setFromConfigurationProvider(ConfigurationProvider provider) {
+        setRestServiceSignUrl(getStringNotNull(provider, "server.rest.signUrl"));
+        setRestServicePendingUrl(getStringNotNull(provider, "server.rest.pendingUrl"));
+        setClientKeyFile(getStringNotNull(provider, "client.auth.keyFile"));
+        setClientKeyPassword(getStringNotNull(provider, "client.auth.keyPassword"));
+        setClientCertificateFile(getStringNotNull(provider, "client.cert.file"));
+        setServerCertificateFile(getStringNotNull(provider, "server.cert.file"));
+        setMaxTotalConnections(getIntNotNull(provider, "client.http.maxTotalConnections"));
+        setMaxConnectionsPerRoute(getIntNotNull(provider, "client.http.maxConnectionsPerRoute"));
+        setConnectionTimeoutInSec(getIntNotNull(provider, "client.http.connectionTimeoutInSeconds"));
+        setResponseTimeoutInSec(getIntNotNull(provider, "client.http.responseTimeoutInSeconds"));
+    }
 }

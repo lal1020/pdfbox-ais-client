@@ -1,6 +1,8 @@
 package com.swisscom.ais.client.model;
 
 import com.swisscom.ais.client.AisClientException;
+import com.swisscom.ais.client.utils.ConfigurationProvider;
+import com.swisscom.ais.client.utils.ConfigurationProviderPropertiesImpl;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -203,17 +205,21 @@ public class UserData {
     }
 
     public void setFromProperties(Properties properties) {
-        claimedIdentityName = getStringNotNull(properties, "signature.claimedIdentityName");
-        claimedIdentityKey = properties.getProperty("signature.claimedIdentityKey");
-        stepUpLanguage = getStringNotNull(properties, "signature.stepUp.language");
-        stepUpMsisdn = getStringNotNull(properties, "signature.stepUp.msisdn");
-        stepUpMessage = getStringNotNull(properties, "signature.stepUp.message");
-        stepUpSerialNumber = getStringNotNull(properties, "signature.stepUp.serialNumber");
-        distinguishedName = getStringNotNull(properties, "signature.distinguishedName");
-        signatureName = properties.getProperty("signature.name");
-        signatureReason = properties.getProperty("signature.reason");
-        signatureLocation = properties.getProperty("signature.location");
-        signatureContactInfo = properties.getProperty("signature.contactInfo");
+        setFromConfigurationProvider(new ConfigurationProviderPropertiesImpl(properties));
+    }
+
+    public void setFromConfigurationProvider(ConfigurationProvider provider) {
+        claimedIdentityName = getStringNotNull(provider, "signature.claimedIdentityName");
+        claimedIdentityKey = provider.getProperty("signature.claimedIdentityKey");
+        stepUpLanguage = getStringNotNull(provider, "signature.stepUp.language");
+        stepUpMsisdn = getStringNotNull(provider, "signature.stepUp.msisdn");
+        stepUpMessage = getStringNotNull(provider, "signature.stepUp.message");
+        stepUpSerialNumber = getStringNotNull(provider, "signature.stepUp.serialNumber");
+        distinguishedName = getStringNotNull(provider, "signature.distinguishedName");
+        signatureName = provider.getProperty("signature.name");
+        signatureReason = provider.getProperty("signature.reason");
+        signatureLocation = provider.getProperty("signature.location");
+        signatureContactInfo = provider.getProperty("signature.contactInfo");
     }
 
     public void validateYourself() {

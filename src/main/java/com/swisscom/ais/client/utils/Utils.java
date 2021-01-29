@@ -2,7 +2,6 @@ package com.swisscom.ais.client.utils;
 
 import com.swisscom.ais.client.AisClientException;
 
-import java.util.Properties;
 import java.util.UUID;
 
 public class Utils {
@@ -15,16 +14,16 @@ public class Utils {
         return "DOC-" + System.currentTimeMillis();
     }
 
-    public static String getStringNotNull(Properties properties, String propertyName) {
-        String value = properties.getProperty(propertyName);
+    public static String getStringNotNull(ConfigurationProvider provider, String propertyName) {
+        String value = provider.getProperty(propertyName);
         if (value == null) {
             throw new IllegalStateException("Invalid configuration. The [" + propertyName + "] is missing or is empty");
         }
         return value;
     }
 
-    public static int getIntNotNull(Properties properties, String propertyName) {
-        String value = properties.getProperty(propertyName);
+    public static int getIntNotNull(ConfigurationProvider provider, String propertyName) {
+        String value = provider.getProperty(propertyName);
         if (value == null) {
             throw new IllegalStateException("Invalid configuration. The [" + propertyName + "] is missing or is empty");
         }

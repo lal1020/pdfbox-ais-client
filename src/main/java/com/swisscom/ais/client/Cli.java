@@ -2,6 +2,8 @@ package com.swisscom.ais.client;
 
 import com.swisscom.ais.client.impl.AisClientImpl;
 import com.swisscom.ais.client.model.PdfHandle;
+import com.swisscom.ais.client.model.RevocationInformation;
+import com.swisscom.ais.client.model.SignatureStandard;
 import com.swisscom.ais.client.model.UserData;
 import com.swisscom.ais.client.rest.RestClientConfiguration;
 import com.swisscom.ais.client.rest.RestClientImpl;
@@ -20,9 +22,6 @@ import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.LoggerContext;
 
-// java Cli -input file.pdf -output file-out.pdf -type static -config config.properties
-// java Cli -init
-// java Cli -help
 public class Cli {
 
     private static final String PARAM_INPUT = "input";
@@ -72,6 +71,9 @@ public class Cli {
             UserData userData = new UserData();
             userData.setFromProperties(properties);
             userData.setConsentUrlCallback((consentUrl, userData1) -> System.out.println("Consent URL: " + consentUrl));
+            userData.setAddRevocationInformation(RevocationInformation.PADES);
+            userData.setAddTimestamp(true);
+            userData.setSignatureStandard(SignatureStandard.PADES);
 
             PdfHandle document = new PdfHandle();
             document.setInputFromFile(inputFile);
@@ -84,6 +86,10 @@ public class Cli {
                 }
                 case "ondemand": {
                     aisClient.signWithOnDemandCertificate(Collections.singletonList(document), userData);
+                    break;
+                }
+                case "ondemand-stepup": {
+                    aisClient.signWithOnDemandCertificateAndStepUp(Collections.singletonList(document), userData);
                     break;
                 }
                 case "timestamp": {
@@ -197,7 +203,7 @@ public class Cli {
         System.out.println(SEPARATOR);
         System.out.println("Swisscom AIS Client - Command line interface");
         System.out.println(SEPARATOR);
-        System.out.println("Usage: java -jar ais-client.jar [OPTIONS]");
+        System.out.println("Usage: java -jar pdfbox-ais-X.X.X-full.jar [OPTIONS]");
         System.out.println();
         System.out.println("OPTIONS:");
         System.out.println("    -init                                               - Create sample configuration files in the current folder");
@@ -214,9 +220,9 @@ public class Cli {
             "    -vv                                                 - Be EXTRA verbose about what is going on (sets Logback config to debug)");
         System.out.println();
         System.out.println("Use case:");
-        System.out.println("    1. > java -jar ais-client.jar -init   => Have the config files generated for you in the current folder");
+        System.out.println("    1. > java -jar pdfbox-ais-X.X.X-full.jar -init   => Have the config files generated for you in the current folder");
         System.out.println("    2. Edit the files accordingly");
-        System.out.println("    3. > java -jar ais-client.jar -config config.properties -input fileIn.pdf -output fileOut.pdf -type timestamp");
+        System.out.println("    3. > java -jar pdfbox-ais-X.X.X-full.jar -config config.properties -input fileIn.pdf -output fileOut.pdf -type timestamp");
     }
 
     private static void runInit() {

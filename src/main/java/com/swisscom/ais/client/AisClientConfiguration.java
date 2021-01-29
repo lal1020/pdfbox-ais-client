@@ -1,5 +1,8 @@
 package com.swisscom.ais.client;
 
+import com.swisscom.ais.client.utils.ConfigurationProvider;
+import com.swisscom.ais.client.utils.ConfigurationProviderPropertiesImpl;
+
 import java.io.IOException;
 import java.util.Properties;
 
@@ -51,8 +54,12 @@ public class AisClientConfiguration {
     }
 
     public void setFromProperties(Properties properties) {
-        setSignaturePollingIntervalInSeconds(getIntNotNull(properties, "client.poll.intervalInSeconds"));
-        setSignaturePollingRounds(getIntNotNull(properties, "client.poll.rounds"));
+        setFromConfigurationProvider(new ConfigurationProviderPropertiesImpl(properties));
+    }
+
+    public void setFromConfigurationProvider(ConfigurationProvider provider) {
+        setSignaturePollingIntervalInSeconds(getIntNotNull(provider, "client.poll.intervalInSeconds"));
+        setSignaturePollingRounds(getIntNotNull(provider, "client.poll.rounds"));
     }
 
 }
