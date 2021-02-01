@@ -7,10 +7,10 @@ It relies on the [Apache PDFBox](https://pdfbox.apache.org/) library for PDF pro
 ## Getting started
 
 To start using the Swisscom AIS service and this client library, do the following:
-1. [Get authentication details to use with the AIS client](docs/Get authentication details.md).   
-2. [Build or download the AIS client binary package](docs/Build or download.md)
-3. [Configure the AIS client for your use case](docs/Configure the AIS client.md)
-4. Use the AIS client, either [programmatically](docs/Use the AIS client programmatically.md) or from the [command line](docs/Use the AIS client via CLI.md)
+1. [Get authentication details to use with the AIS client](docs/get-authentication-details.md).   
+2. [Build or download the AIS client binary package](docs/build-or-download.md)
+3. [Configure the AIS client for your use case](docs/configure-the-AIS-client.md)
+4. Use the AIS client, either [programmatically](docs/use-the-AIS-client-programmatically.md) or from the [command line](docs/use-the-AIS-client-via-CLI.md)
 
 ## Quick examples
 

@@ -9,6 +9,7 @@ import com.swisscom.ais.client.model.SignatureStandard;
 import com.swisscom.ais.client.model.UserData;
 import com.swisscom.ais.client.rest.RestClientConfiguration;
 import com.swisscom.ais.client.rest.RestClientImpl;
+import com.swisscom.ais.client.rest.model.DigestAlgorithm;
 
 import java.io.IOException;
 import java.util.Collections;
@@ -32,7 +33,7 @@ public class TestFullyProgrammaticConfiguration {
         RestClientImpl restClient = new RestClientImpl();
         restClient.setConfiguration(restConfig);
 
-        // load the AIS client config; this is done once per application lifetime
+        // then configure the AIS client; this is done once per application lifetime
         AisClientConfiguration aisConfig = new AisClientConfiguration();
         aisConfig.setSignaturePollingIntervalInSeconds(10);
         aisConfig.setSignaturePollingRounds(10);
@@ -62,6 +63,7 @@ public class TestFullyProgrammaticConfiguration {
             PdfHandle document = new PdfHandle();
             document.setInputFromFile("/home/user/input.pdf");
             document.setOutputToFile("/home/user/signed-output.pdf");
+            document.setDigestAlgorithm(DigestAlgorithm.SHA256);
 
             // finally, do the signature
             SignatureResult result = aisClient.signWithOnDemandCertificateAndStepUp(Collections.singletonList(document), userData);
