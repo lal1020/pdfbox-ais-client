@@ -115,3 +115,89 @@ as a Spring bean and have its properties be populated in a _Configuration_ bean 
 Moreover, in a [Spring Boot](https://spring.io/projects/spring-boot) setup, you can easily integrate the configuration of the AIS client in
 the central _application.yml_ configuration file, using the 
 [ConfigurationProvider](../src/main/java/com/swisscom/ais/client/utils/ConfigurationProvider.java) interface.
+
+For example, the following simple _ConfigurationProvider_ implementation will load the AIS client configuration from the Spring Boot's 
+_application.yml_ file:
+
+```java
+import com.swisscom.ais.client.utils.ConfigurationProvider;
+import org.springframework.core.env.Environment;
+
+public class ConfigurationProviderSpringImpl implements ConfigurationProvider {
+
+    private final Environment environment;
+
+    public ConfigurationProviderSpringImpl(Environment environment) {
+        this.environment = environment;
+    }
+
+    @Override
+    public String getProperty(String name) {
+        // add any prefix here, so that you neatly organize AIS client's config in your application.yml
+        return environment.getProperty("swisscom.ais-client." + name);
+    }
+
+}
+```
+
+So, then, add the following to your _application.yml_ file:
+
+```yaml
+swisscom:
+  ais-client:
+    server:
+      # The AIS server REST URL for sending the Signature requests
+      rest.signUrl: https://ais.swisscom.com/AIS-Server/rs/v1.0/sign
+      # The AIS server REST URL for sending the Signature status poll requests (Pending requests)
+      rest.pendingUrl: https://ais.swisscom.com/AIS-Server/rs/v1.0/pending
+      # The AIS server trusted CA certificate file
+      cert.file: /home/user/ais-server.crt
+    client:
+      # The client's private key file (corresponding to the public key attached to the client's certificate)
+      auth.keyFile: /home/user/ais-client.key
+      # The password of the client's private key
+      auth.keyPassword: secret
+      # The client's certificate file
+      cert.file: /home/user/ais-client.crt
+      # The maximum number of connections that the HTTP client used by the AIS client can create and reuse simultaneously
+      http.maxTotalConnections: 20
+      # The maximum number of connections PER ROUTE that the HTTP client used by the AIS client can use
+      http.maxConnectionsPerRoute: 10
+      # The HTTP connection timeout in SECONDS (the maximum time allowed for the HTTP client to wait for the TCP socket connection
+      # to be established until the request is dropped and the client gives up).
+      http.connectionTimeoutInSeconds: 10
+      # The HTTP response timeout in SECONDS (the maximum time allowed for the HTTP client to wait for the response to be received
+      # for any one request until the request is dropped and the client gives up).
+      http.responseTimeoutInSeconds: 20
+      # The interval IN SECONDS for the client to poll for signature status (for each parallel request).
+      poll.intervalInSeconds: 10
+      # The total number of rounds (including the first Pending request) that the client runs for each parallel request. After this
+      # number of rounds of calling the Pending endpoint for an ongoing request, the client gives up and signals a timeout for that
+      # respective request.
+      poll.rounds: 10
+    signature:
+      # The AIS Claimed Identity name. The right Claimed Identity (and key, see below) must be used for the right signature type.
+      claimedIdentityName: ais-90days-trial
+      # The AIS Claimed Identity key. The key together with the name (see above) is used for starting the correct signature type.
+      claimedIdentityKey: keyEntity
+      # The client's Subject DN to which the certificate is bound.
+      distinguishedName: "cn: TEST User, givenname: Max, surname: Maximus, c: US, serialnumber: abcdefabcdefabcdefabcdefabcdef"
+      # The language (one of "en", "fr", "de", "it") to be used during the Step Up interaction with the mobile user.
+      stepUp:
+        language: en
+        # The MSISDN (in international format) of the mobile user to interact with during the Step Up phase.
+        msisdn: 0040799999999
+        # The message to present to the mobile user during the Step Up phase.
+        message: Please confirm the signing of the document
+        # The mobile user's Serial Number to validate during the Step Up phase. If this number is different than the one registered on the server
+        # side for the mobile user, the request will fail.
+        serialNumber: 
+      # The name to embed in the signature to be created.
+      name: TEST Signer
+      # The reason for this signature to be created.
+      reason: Testing signature
+      # The location where the signature is created.
+      location: Testing location
+      # The contact info to embed in the signature to be created.
+      contactInfo: tester.test@test.com
+```
