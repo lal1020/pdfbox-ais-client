@@ -14,7 +14,7 @@ For Maven projects, add the following in your _POM_ file:
         <repository>
             <id>swisscom-ais-pdfbox-client</id>
             <name>Swisscom AIS PDFBox client</name>
-            <url>https://raw.githubusercontent.com/bmocanu-inc/scs-pdfbox-ais/development/repository</url>
+            <url>https://raw.githubusercontent.com/bmocanu-inc/scs-pdfbox-ais/main/repository</url>
             <!-- TODO change this URL once this repo is integrated in the Swisscom repo -->
         </repository>
     </repositories>
@@ -42,7 +42,7 @@ plugins {
 repositories {
     mavenCentral()
     maven {
-        url 'https://raw.githubusercontent.com/bmocanu-inc/scs-pdfbox-ais/development/repository'
+        url 'https://raw.githubusercontent.com/bmocanu-inc/scs-pdfbox-ais/main/repository'
     }
 }
 
