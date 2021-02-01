@@ -113,6 +113,5 @@ As the section above demonstrated, the AIS client can easily be configured in a 
 as a Spring bean and have its properties be populated in a _Configuration_ bean or via XML configuration.
 
 Moreover, in a [Spring Boot](https://spring.io/projects/spring-boot) setup, you can easily integrate the configuration of the AIS client in
-the central _application.yml_ configuration file, using the _ConfigurationProvider_ interface.
-
-Here is an example: (TODO)
+the central _application.yml_ configuration file, using the 
+[ConfigurationProvider](../src/main/java/com/swisscom/ais/client/utils/ConfigurationProvider.java) interface.

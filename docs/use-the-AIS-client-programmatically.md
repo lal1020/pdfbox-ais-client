@@ -5,12 +5,51 @@ the document signing and timestamping features provided by the AIS service.
 ## Dependency configuration
 For Maven projects, add the following in your _POM_ file:
 ```xml
-TODO
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+    <!-- ... -->
+    
+    <repositories>
+        <repository>
+            <id>swisscom-ais-pdfbox-client</id>
+            <name>Swisscom AIS PDFBox client</name>
+            <url>https://raw.githubusercontent.com/bmocanu-inc/scs-pdfbox-ais/development/repository</url>
+            <!-- TODO change this URL once this repo is integrated in the Swisscom repo -->
+        </repository>
+    </repositories>
+    
+    <!-- ... -->
+
+    <dependencies>
+        <dependency>
+            <groupId>com.swisscom.ais</groupId>
+            <artifactId>pdfbox-ais</artifactId>
+            <version>1.0.0</version>
+        </dependency>
+    </dependencies>
+</project>
 ```
 
 For Gradle projects, add the following in your _build.gradle_ file:
 ```groovy
-TODO
+plugins {
+    id 'java'
+}
+
+// ...
+
+repositories {
+    mavenCentral()
+    maven {
+        url 'https://raw.githubusercontent.com/bmocanu-inc/scs-pdfbox-ais/development/repository'
+    }
+}
+
+dependencies {
+    compile 'com.swisscom.ais:pdfbox-ais:2.0.0'
+    // ...
+}
 ```
 
 ## Using the library
