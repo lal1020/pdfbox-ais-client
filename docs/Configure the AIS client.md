@@ -1,3 +1,11 @@
+# Configure the AIS client
+To use the AIS client, you first have to [obtain it (or build it)](docs/Build or download.md), then you have to configure it. The way you configure
+the client depends a lot on how you plan to use the client and integrate it in your project/setup.
+
+## Properties files
+The AIS client can be configured from a Java properties file. Here is an example of such a file:
+
+```properties
 # The AIS server REST URL for sending the Signature requests
 server.rest.signUrl=https://ais.swisscom.com/AIS-Server/rs/v1.0/sign
 # The AIS server REST URL for sending the Signature status poll requests (Pending requests)
@@ -53,9 +61,58 @@ signature.reason=Testing signature
 signature.location=Testing location
 # The contact info to embed in the signature to be created.
 signature.contactInfo=tester.test@test.com
-# Local testing ----------------------------------------------------------------------
-# These are just free-chosen properties, not used by the AIS client.
-# An input file for local testing.
-local.test.inputFile=/home/user/input.pdf
-# An output file prefix for local testing.
-local.test.outputFilePrefix=/home/user/output
+```
+
+Once you create this file and configure its properties accordingly, it can either be picked up by the AIS client when you use it via its 
+CLI interface or you can use it to populate the objects that configure the client.
+
+*CLI usage:*
+```shell
+java -jar pdfbox-ais-1.0.0-full.jar -config config.properties -input local-sample-doc.pdf -output test-sign.pdf -type ondemand-stepup
+```
+
+*Programmatic usage:*
+```java
+Properties properties = new Properties();
+properties.load(TestClass.class.getResourceAsStream("/config.properties"));
+
+RestClientConfiguration config = new RestClientConfiguration();
+config.setFromProperties(properties);
+
+RestClientImpl restClient = new RestClientImpl();
+restClient.setConfiguration(config);
+
+try (AisClientImpl aisClient = new AisClientImpl(restClient)) {
+    UserData userData = new UserData();
+    userData.setFromProperties(properties);
+    userData.setConsentUrlCallback((consentUrl, userData1) -> System.out.println("Consent URL: " + consentUrl));
+    userData.setAddRevocationInformation(RevocationInformation.PADES);
+    userData.setSignatureStandard(SignatureStandard.CADES);
+
+    PdfHandle document = new PdfHandle();
+    document.setInputFromFile(properties.getProperty("local.test.inputFile"));
+    document.setOutputToFile(properties.getProperty("local.test.outputFilePrefix") + System.currentTimeMillis() + ".pdf");
+    document.setDigestAlgorithm(DigestAlgorithm.SHA256);
+
+    SignatureResult result = aisClient.signWithOnDemandCertificateAndStepUp(Collections.singletonList(document), userData);
+    System.out.println("Final result: " + result);
+}
+```
+
+## Programmatic configuration
+All the fields that are used for configuring the AIS client can also be populated by hand (or by some other means, e.g. Spring framework).
+In order not to repeat content, please see the 
+[TestFullyProgrammaticConfiguration](../src/main/java/com/swisscom/ais/TestFullyProgrammaticConfiguration.java) sample class for how 
+this can be implemented.
+
+## Spring way
+The AIS client is [Spring framework](https://spring.io/) friendly. While not using Spring as a dependency, it is implemented so that you 
+can easily configure it and use it as a Spring bean.
+
+As the section above demonstrated, the AIS client can easily be configured in a programmatic way. This means that the AIS client can be used
+as a Spring bean and have its properties be populated in a _Configuration_ bean or via XML configuration.
+
+Moreover, in a [Spring Boot](https://spring.io/projects/spring-boot) setup, you can easily integrate the configuration of the AIS client in
+the central _application.yml_ configuration file, using the _ConfigurationProvider_ interface.
+
+Here is an example: (TODO)

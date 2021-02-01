@@ -1,5 +1,4 @@
-# Usage as a command-line tool
-
+# Use the AIS client via CLI
 The AIS client can be used from the command line as a standalone tool.
 
 ## Usage
