@@ -76,7 +76,16 @@ public class PdfDocument {
             pdSignature.setSignDate(signDate);
         }
 
-        // SigUtils.setMDPPermission(pdDocument, pdSignature, 0); // TODO set this always to 0
+        // set this access permissions level to 0, to ensure we just sign the PDF not certify it
+        // for more details: https://wwwimages2.adobe.com/content/dam/acom/en/devnet/pdf/pdfs/PDF32000_2008.pdf see section 12.8.2.2.2
+        // --
+        // There it says:
+        // --
+        // A dictionary containing a single entry whose key is P and whose value is an integer between 0 and 3. A value of 0
+        // defines the signature as an author signature (see 12.8, “Digital Signatures”). The values 1 through 3
+        // shall be used for certification signatures and correspond to the value of P in a DocMDP transform
+        // parameters dictionary
+        SigUtils.setMDPPermission(pdDocument, pdSignature, 0);
 
         pdSignature.setName(userData.getSignatureName());
         pdSignature.setReason(userData.getSignatureReason());
