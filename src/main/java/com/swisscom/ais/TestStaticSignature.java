@@ -27,8 +27,6 @@ public class TestStaticSignature {
             UserData userData = new UserData();
             userData.setFromProperties(properties);
             userData.setConsentUrlCallback((consentUrl, userData1) -> System.out.println("Consent URL: " + consentUrl));
-            userData.setAddTimestamp(true);
-            userData.setAddRevocationInformation(RevocationInformation.PADES);
 
             PdfHandle document = new PdfHandle();
             document.setInputFromFile(properties.getProperty("local.test.inputFile"));

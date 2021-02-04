@@ -57,12 +57,13 @@ public class AisClientImpl implements AisClient {
 
     @Override
     public SignatureResult signWithStaticCertificate(List<PdfHandle> documentHandles, UserData userData) {
-        userData.validateYourself();
+        SignatureMode signatureMode = SignatureMode.STATIC;
         Trace trace = new Trace(userData.getTransactionId());
+        userData.validateYourself(signatureMode, trace);
         documentHandles.forEach(handle -> handle.validateYourself(trace));
         // prepare documents
         List<PdfDocument> documentsToSign = prepareMultipleDocumentsForSigning(documentHandles,
-                                                                               SignatureMode.STATIC,
+                                                                               signatureMode,
                                                                                SignatureType.CMS,
                                                                                userData,
                                                                                trace);
@@ -70,7 +71,9 @@ public class AisClientImpl implements AisClient {
         AISSignResponse signResponse;
         try {
             List<AdditionalProfile> additionalProfiles = prepareAdditionalProfiles(documentsToSign);
-            AISSignRequest signRequest = ModelHelper.buildAisSignRequest(documentsToSign, SignatureType.CMS,
+            AISSignRequest signRequest = ModelHelper.buildAisSignRequest(documentsToSign,
+                                                                         signatureMode,
+                                                                         SignatureType.CMS,
                                                                          userData, additionalProfiles,
                                                                          false, false);
             signResponse = restClient.requestSignature(signRequest, trace);
@@ -88,12 +91,13 @@ public class AisClientImpl implements AisClient {
     @Override
     @SuppressWarnings("DuplicatedCode")
     public SignatureResult signWithOnDemandCertificate(List<PdfHandle> documentHandles, UserData userData) {
-        userData.validateYourself();
+        SignatureMode signatureMode = SignatureMode.ON_DEMAND;
         Trace trace = new Trace(userData.getTransactionId());
+        userData.validateYourself(signatureMode, trace);
         documentHandles.forEach(handle -> handle.validateYourself(trace));
         // prepare documents
         List<PdfDocument> documentsToSign = prepareMultipleDocumentsForSigning(documentHandles,
-                                                                               SignatureMode.ON_DEMAND,
+                                                                               signatureMode,
                                                                                SignatureType.CMS,
                                                                                userData,
                                                                                trace);
@@ -102,7 +106,9 @@ public class AisClientImpl implements AisClient {
         try {
             List<AdditionalProfile> additionalProfiles = prepareAdditionalProfiles(documentsToSign,
                                                                                    AdditionalProfile.ON_DEMAND_CERTIFICATE);
-            AISSignRequest signRequest = ModelHelper.buildAisSignRequest(documentsToSign, SignatureType.CMS,
+            AISSignRequest signRequest = ModelHelper.buildAisSignRequest(documentsToSign,
+                                                                         signatureMode,
+                                                                         SignatureType.CMS,
                                                                          userData, additionalProfiles,
                                                                          false, true);
             signResponse = restClient.requestSignature(signRequest, trace);
@@ -120,12 +126,13 @@ public class AisClientImpl implements AisClient {
     @Override
     @SuppressWarnings("DuplicatedCode")
     public SignatureResult signWithOnDemandCertificateAndStepUp(List<PdfHandle> documentHandles, UserData userData) {
-        userData.validateYourself();
+        SignatureMode signatureMode = SignatureMode.ON_DEMAND_STEP_UP;
         Trace trace = new Trace(userData.getTransactionId());
+        userData.validateYourself(signatureMode, trace);
         documentHandles.forEach(handle -> handle.validateYourself(trace));
         // prepare documents
         List<PdfDocument> documentsToSign = prepareMultipleDocumentsForSigning(documentHandles,
-                                                                               SignatureMode.ON_DEMAND,
+                                                                               signatureMode,
                                                                                SignatureType.CMS,
                                                                                userData,
                                                                                trace);
@@ -136,7 +143,9 @@ public class AisClientImpl implements AisClient {
                                                                                    AdditionalProfile.ON_DEMAND_CERTIFICATE,
                                                                                    AdditionalProfile.REDIRECT,
                                                                                    AdditionalProfile.ASYNC);
-            AISSignRequest signRequest = ModelHelper.buildAisSignRequest(documentsToSign, SignatureType.CMS,
+            AISSignRequest signRequest = ModelHelper.buildAisSignRequest(documentsToSign,
+                                                                         signatureMode,
+                                                                         SignatureType.CMS,
                                                                          userData, additionalProfiles, true, true);
             signResponse = restClient.requestSignature(signRequest, trace);
         } catch (Exception e) {
@@ -157,19 +166,22 @@ public class AisClientImpl implements AisClient {
 
     @Override
     public SignatureResult timestamp(List<PdfHandle> documentHandles, UserData userData) {
-        userData.validateYourself();
+        SignatureMode signatureMode = SignatureMode.TIMESTAMP;
         Trace trace = new Trace(userData.getTransactionId());
+        userData.validateYourself(signatureMode, trace);
         documentHandles.forEach(handle -> handle.validateYourself(trace));
         // prepare documents
         List<PdfDocument> documentsToSign = prepareMultipleDocumentsForSigning(documentHandles,
-                                                                               SignatureMode.TIMESTAMP,
+                                                                               signatureMode,
                                                                                SignatureType.TIMESTAMP,
                                                                                userData,
                                                                                trace);
         AISSignResponse signResponse;
         try {
             List<AdditionalProfile> additionalProfiles = prepareAdditionalProfiles(documentsToSign, AdditionalProfile.TIMESTAMP);
-            AISSignRequest signRequest = ModelHelper.buildAisSignRequest(documentsToSign, SignatureType.TIMESTAMP,
+            AISSignRequest signRequest = ModelHelper.buildAisSignRequest(documentsToSign,
+                                                                         signatureMode,
+                                                                         SignatureType.TIMESTAMP,
                                                                          userData, additionalProfiles,
                                                                          false, false);
             signResponse = restClient.requestSignature(signRequest, trace);

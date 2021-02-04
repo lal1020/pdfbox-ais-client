@@ -54,7 +54,6 @@ public class TestFullyProgrammaticConfiguration {
             userData.setSignatureLocation("Topeka, Kansas");
             userData.setSignatureContactInfo("test@test.com");
 
-            userData.setAddRevocationInformation(RevocationInformation.PADES);
             userData.setSignatureStandard(SignatureStandard.PADES);
 
             userData.setConsentUrlCallback((consentUrl, userData1) -> System.out.println("Consent URL: " + consentUrl));

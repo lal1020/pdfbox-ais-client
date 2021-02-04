@@ -2,6 +2,7 @@ package com.swisscom.ais.client.rest.model;
 
 import com.swisscom.ais.client.impl.PdfDocument;
 import com.swisscom.ais.client.model.RevocationInformation;
+import com.swisscom.ais.client.model.SignatureMode;
 import com.swisscom.ais.client.model.SignatureStandard;
 import com.swisscom.ais.client.model.UserData;
 import com.swisscom.ais.client.rest.model.pendingreq.AISPendingRequest;
@@ -18,6 +19,7 @@ public class ModelHelper {
     private static final String SWISSCOM_BASIC_PROFILE = "http://ais.swisscom.ch/1.1";
 
     public static AISSignRequest buildAisSignRequest(List<PdfDocument> documents,
+                                                     SignatureMode signatureMode,
                                                      SignatureType signatureType,
                                                      UserData userData,
                                                      List<AdditionalProfile> additionalProfiles,
@@ -72,7 +74,13 @@ public class ModelHelper {
         }
 
         ScAddRevocationInformation addRevocationInformation = new ScAddRevocationInformation();
-        if (userData.getAddRevocationInformation() != RevocationInformation.DEFAULT) {
+        if (userData.getAddRevocationInformation() == RevocationInformation.DEFAULT) {
+            if (signatureMode == SignatureMode.TIMESTAMP) {
+                addRevocationInformation.setType(RevocationInformation.BOTH.getValue());
+            } else {
+                addRevocationInformation.setType(null);
+            }
+        } else {
             addRevocationInformation.setType(userData.getAddRevocationInformation().getValue());
         }
 
@@ -84,7 +92,7 @@ public class ModelHelper {
         optionalInputs.setScCertificateRequest(certificateRequest);
         optionalInputs.setScAddRevocationInformation(null);
         optionalInputs.setScAddRevocationInformation(addRevocationInformation);
-        if (userData.getSignatureStandard() != SignatureStandard.DEFAULT) {
+        if (signatureMode != SignatureMode.TIMESTAMP && userData.getSignatureStandard() != SignatureStandard.DEFAULT) {
             optionalInputs.setScSignatureStandard(userData.getSignatureStandard().getValue());
         }
 

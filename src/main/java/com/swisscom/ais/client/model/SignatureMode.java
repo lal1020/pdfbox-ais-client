@@ -4,7 +4,8 @@ public enum SignatureMode {
 
     TIMESTAMP("Timestamp"),
     STATIC("Static"),
-    ON_DEMAND("On Demand");
+    ON_DEMAND("On Demand"),
+    ON_DEMAND_STEP_UP("On Demand with Step Up");
 
     private final String friendlyName;
 
