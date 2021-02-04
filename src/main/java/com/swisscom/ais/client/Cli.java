@@ -3,18 +3,19 @@ package com.swisscom.ais.client;
 import com.swisscom.ais.client.impl.AisClientImpl;
 import com.swisscom.ais.client.model.PdfHandle;
 import com.swisscom.ais.client.model.RevocationInformation;
+import com.swisscom.ais.client.model.SignatureResult;
 import com.swisscom.ais.client.model.SignatureStandard;
 import com.swisscom.ais.client.model.UserData;
 import com.swisscom.ais.client.rest.RestClientConfiguration;
 import com.swisscom.ais.client.rest.RestClientImpl;
+import com.swisscom.ais.client.utils.Loggers;
+import com.swisscom.ais.client.utils.Utils;
 
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.Collections;
 import java.util.Properties;
 
@@ -33,6 +34,11 @@ public class Cli {
     private static final String PARAM_VERBOSE1 = "v";
     private static final String PARAM_VERBOSE2 = "vv";
     private static final String SEPARATOR = "--------------------------------------------------------------------------------";
+
+    private static final String TYPE_STATIC = "static";
+    private static final String TYPE_ON_DEMAND = "ondemand";
+    private static final String TYPE_ON_DEMAND_STEP_UP = "ondemand-stepup";
+    private static final String TYPE_TIMESTAMP = "timestamp";
 
     // ----------------------------------------------------------------------------------------------------
 
@@ -54,6 +60,17 @@ public class Cli {
         }
 
         configureLogback();
+
+        System.out.println(SEPARATOR);
+        System.out.println("Swisscom AIS Client - Command line interface");
+        System.out.println(SEPARATOR);
+        System.out.println("Starting with following parameters:");
+        System.out.println("Config            : " + configFile);
+        System.out.println("Input file        : " + inputFile);
+        System.out.println("Output file       : " + outputFile);
+        System.out.println("Type of signature : " + type);
+        System.out.println("Verbose level     : " + verboseLevel);
+        System.out.println(SEPARATOR);
 
         Properties properties = new Properties();
         properties.load(new FileInputStream(configFile));
@@ -79,27 +96,33 @@ public class Cli {
             document.setInputFromFile(inputFile);
             document.setOutputToFile(outputFile);
 
+            SignatureResult result;
+
             switch (type) {
-                case "static": {
-                    aisClient.signWithStaticCertificate(Collections.singletonList(document), userData);
+                case TYPE_STATIC: {
+                    result = aisClient.signWithStaticCertificate(Collections.singletonList(document), userData);
                     break;
                 }
-                case "ondemand": {
-                    aisClient.signWithOnDemandCertificate(Collections.singletonList(document), userData);
+                case TYPE_ON_DEMAND: {
+                    result = aisClient.signWithOnDemandCertificate(Collections.singletonList(document), userData);
                     break;
                 }
-                case "ondemand-stepup": {
-                    aisClient.signWithOnDemandCertificateAndStepUp(Collections.singletonList(document), userData);
+                case TYPE_ON_DEMAND_STEP_UP: {
+                    result = aisClient.signWithOnDemandCertificateAndStepUp(Collections.singletonList(document), userData);
                     break;
                 }
-                case "timestamp": {
-                    aisClient.timestamp(Collections.singletonList(document), userData);
+                case TYPE_TIMESTAMP: {
+                    result = aisClient.timestamp(Collections.singletonList(document), userData);
                     break;
                 }
                 default: {
                     throw new IllegalArgumentException("Invalid type: " + type);
                 }
             }
+
+            System.out.println(SEPARATOR);
+            System.out.println("Final result: " + result);
+            System.out.println(SEPARATOR);
         }
     }
 
@@ -200,35 +223,13 @@ public class Cli {
         if (argsValidationError != null) {
             System.out.println(argsValidationError);
         }
-        System.out.println(SEPARATOR);
-        System.out.println("Swisscom AIS Client - Command line interface");
-        System.out.println(SEPARATOR);
-        System.out.println("Usage: java -jar pdfbox-ais-X.X.X-full.jar [OPTIONS]");
-        System.out.println();
-        System.out.println("OPTIONS:");
-        System.out.println("    -init                                               - Create sample configuration files in the current folder");
-        System.out.println("    -input [FILE]                                       - Source PDF file to sign");
-        System.out.println("    -output [FILE]                                      - Output PDF file, where the signed document should be written");
-        System.out.println("    -type [static|ondemand|ondemand-stepup|timestamp]   - The type of signature to create");
-        System.out.println(
-            "    -config [PROPERTIES FILE]                           - The properties file that provides the extra configuration parameters. "
-            + "Use -init to create a sample file. If you don't specify a file, by default config.properties is used");
-        System.out.println("    -help                                               - This help text");
-        System.out
-            .println("    -v                                                  - Be verbose about what is going on (sets Logback config to info)");
-        System.out.println(
-            "    -vv                                                 - Be EXTRA verbose about what is going on (sets Logback config to debug)");
-        System.out.println();
-        System.out.println("Use case:");
-        System.out.println("    1. > java -jar pdfbox-ais-X.X.X-full.jar -init   => Have the config files generated for you in the current folder");
-        System.out.println("    2. Edit the files accordingly");
-        System.out.println("    3. > java -jar pdfbox-ais-X.X.X-full.jar -config config.properties -input fileIn.pdf -output fileOut.pdf -type timestamp");
+        Utils.copyFileFromClasspathToStdout("/cli-files/usage.txt");
     }
 
     private static void runInit() {
         String[][] configPairs = new String[][]{
-            new String[]{"/sample-files/config-sample.properties", "config.properties"},
-            new String[]{"/sample-files/logback-sample.xml", "logback.xml"}
+            new String[]{"/cli-files/config-sample.properties", "config.properties"},
+            new String[]{"/cli-files/logback-sample.xml", "logback.xml"}
         };
         for (String[] configPair : configPairs) {
             String inputFile = configPair[0];
@@ -239,19 +240,7 @@ public class Cli {
                 return;
             }
             System.out.println("Writing " + baseOutputFile + " to " + outputFile);
-            try {
-                FileOutputStream fos = new FileOutputStream(outputFile);
-                InputStream is = Cli.class.getResourceAsStream(inputFile);
-                byte[] buffer = new byte[1024];
-                int bytesRead;
-                while ((bytesRead = is.read(buffer)) > 0) {
-                    fos.write(buffer, 0, bytesRead);
-                }
-                is.close();
-                fos.close();
-            } catch (IOException e) {
-                throw new AisClientException("Failed to create the config file: [" + outputFile + "]");
-            }
+            Utils.copyFileFromClasspathToDisk(inputFile, outputFile);
         }
     }
 
@@ -261,31 +250,34 @@ public class Cli {
             case 0: {
                 setLoggerToLevel(ch.qos.logback.classic.Logger.ROOT_LOGGER_NAME, "warn", loggerContext);
                 setLoggerToLevel("org.apache.hc", "info", loggerContext);
-                setLoggerToLevel("swisscom.ais.client", "info", loggerContext);
-                setLoggerToLevel("swisscom.ais.client.config", "info", loggerContext);
-                setLoggerToLevel("swisscom.ais.client.protocol", "info", loggerContext);
-                setLoggerToLevel("swisscom.ais.client.requestResponse", "warn", loggerContext);
-                setLoggerToLevel("swisscom.ais.client.fullRequestResponse", "warn", loggerContext);
+                setLoggerToLevel(Loggers.CLIENT, "info", loggerContext);
+                setLoggerToLevel(Loggers.CONFIG, "info", loggerContext);
+                setLoggerToLevel(Loggers.CLIENT_PROTOCOL, "info", loggerContext);
+                setLoggerToLevel(Loggers.REQUEST_RESPONSE, "warn", loggerContext);
+                setLoggerToLevel(Loggers.FULL_REQUEST_RESPONSE, "warn", loggerContext);
+                setLoggerToLevel(Loggers.PDF_PROCESSING, "warn", loggerContext);
                 break;
             }
             case 1: {
                 setLoggerToLevel(ch.qos.logback.classic.Logger.ROOT_LOGGER_NAME, "info", loggerContext);
                 setLoggerToLevel("org.apache.hc", "info", loggerContext);
-                setLoggerToLevel("swisscom.ais.client", "info", loggerContext);
-                setLoggerToLevel("swisscom.ais.client.config", "info", loggerContext);
-                setLoggerToLevel("swisscom.ais.client.protocol", "info", loggerContext);
-                setLoggerToLevel("swisscom.ais.client.requestResponse", "debug", loggerContext);
-                setLoggerToLevel("swisscom.ais.client.fullRequestResponse", "warn", loggerContext);
+                setLoggerToLevel(Loggers.CLIENT, "info", loggerContext);
+                setLoggerToLevel(Loggers.CONFIG, "info", loggerContext);
+                setLoggerToLevel(Loggers.CLIENT_PROTOCOL, "info", loggerContext);
+                setLoggerToLevel(Loggers.REQUEST_RESPONSE, "debug", loggerContext);
+                setLoggerToLevel(Loggers.FULL_REQUEST_RESPONSE, "warn", loggerContext);
+                setLoggerToLevel(Loggers.PDF_PROCESSING, "debug", loggerContext);
                 break;
             }
             case 2: {
                 setLoggerToLevel(ch.qos.logback.classic.Logger.ROOT_LOGGER_NAME, "debug", loggerContext);
                 setLoggerToLevel("org.apache.hc", "debug", loggerContext);
-                setLoggerToLevel("swisscom.ais.client", "debug", loggerContext);
-                setLoggerToLevel("swisscom.ais.client.config", "debug", loggerContext);
-                setLoggerToLevel("swisscom.ais.client.protocol", "debug", loggerContext);
-                setLoggerToLevel("swisscom.ais.client.requestResponse", "warn", loggerContext);
-                setLoggerToLevel("swisscom.ais.client.fullRequestResponse", "debug", loggerContext);
+                setLoggerToLevel(Loggers.CLIENT, "debug", loggerContext);
+                setLoggerToLevel(Loggers.CONFIG, "debug", loggerContext);
+                setLoggerToLevel(Loggers.CLIENT_PROTOCOL, "debug", loggerContext);
+                setLoggerToLevel(Loggers.REQUEST_RESPONSE, "warn", loggerContext);
+                setLoggerToLevel(Loggers.FULL_REQUEST_RESPONSE, "debug", loggerContext);
+                setLoggerToLevel(Loggers.PDF_PROCESSING, "debug", loggerContext);
                 break;
             }
             default: {

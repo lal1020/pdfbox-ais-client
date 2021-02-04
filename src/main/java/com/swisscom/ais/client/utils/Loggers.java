@@ -13,6 +13,7 @@ public class Loggers {
     public static final String CLIENT_PROTOCOL = "swisscom.ais.client.protocol";
     public static final String REQUEST_RESPONSE = "swisscom.ais.client.requestResponse";
     public static final String FULL_REQUEST_RESPONSE = "swisscom.ais.client.fullRequestResponse";
+    public static final String PDF_PROCESSING = "swisscom.ais.client.pdfProcessing";
 
     // ----------------------------------------------------------------------------------------------------
 

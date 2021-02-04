@@ -75,6 +75,9 @@ public class PdfDocument {
             signDate.add(Calendar.MINUTE, 3);
             pdSignature.setSignDate(signDate);
         }
+
+        // SigUtils.setMDPPermission(pdDocument, pdSignature, 0); // TODO set this always to 0
+
         pdSignature.setName(userData.getSignatureName());
         pdSignature.setReason(userData.getSignatureReason());
         pdSignature.setLocation(userData.getSignatureLocation());

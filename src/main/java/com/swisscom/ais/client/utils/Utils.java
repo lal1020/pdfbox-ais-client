@@ -1,7 +1,13 @@
 package com.swisscom.ais.client.utils;
 
 import com.swisscom.ais.client.AisClientException;
+import com.swisscom.ais.client.Cli;
 
+import java.io.ByteArrayOutputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 
 public class Utils {
@@ -63,6 +69,39 @@ public class Utils {
             } else {
                 throw new AisClientException(errorMessage + " - " + trace.getId());
             }
+        }
+    }
+
+    public static void copyFileFromClasspathToDisk(String inputFile, String outputFile) {
+        try {
+            FileOutputStream fos = new FileOutputStream(outputFile);
+            InputStream is = Cli.class.getResourceAsStream(inputFile);
+            byte[] buffer = new byte[1024];
+            int bytesRead;
+            while ((bytesRead = is.read(buffer)) > 0) {
+                fos.write(buffer, 0, bytesRead);
+            }
+            is.close();
+            fos.close();
+        } catch (IOException e) {
+            throw new AisClientException("Failed to create the file: [" + outputFile + "]");
+        }
+    }
+
+    public static void copyFileFromClasspathToStdout(String inputFile) {
+        try {
+            InputStream is = Cli.class.getResourceAsStream(inputFile);
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            byte[] buffer = new byte[1024];
+            int bytesRead;
+            while ((bytesRead = is.read(buffer)) > 0) {
+                baos.write(buffer, 0, bytesRead);
+            }
+            is.close();
+            baos.close();
+            System.out.println(new String(baos.toByteArray(), StandardCharsets.UTF_8));
+        } catch (IOException e) {
+            throw new AisClientException("Failed to copy file: [" + inputFile + "] to STDOUT");
         }
     }
 

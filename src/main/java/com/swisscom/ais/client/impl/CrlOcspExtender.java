@@ -31,7 +31,7 @@ import java.util.stream.Collectors;
 
 public class CrlOcspExtender {
 
-    private static final Logger logClient = LoggerFactory.getLogger(Loggers.CLIENT);
+    private static final Logger logPdfProcessing = LoggerFactory.getLogger(Loggers.PDF_PROCESSING);
 
     private final Trace trace;
     private final PDDocument pdDocument;
@@ -56,13 +56,13 @@ public class CrlOcspExtender {
                 X509Certificate x509cert;
                 try {
                     x509cert = new JcaX509CertificateConverter().getCertificate(certHolder);
-                    if (logClient.isDebugEnabled()) {
+                    if (logPdfProcessing.isDebugEnabled()) {
                         String message = "\nEmbedding certificate..."
                                          + "\nSubject DN                   : " + x509cert.getSubjectDN()
                                          + "\nIssuer DN                    : " + x509cert.getIssuerDN()
                                          + "\nValid not before             : " + x509cert.getNotBefore()
                                          + "\nValid not after              : " + x509cert.getNotAfter();
-                        logClient.debug(message + " - " + trace.getId());
+                        logPdfProcessing.debug(message + " - " + trace.getId());
                     }
                     return x509cert.getEncoded();
                 } catch (CertificateException e) {
@@ -74,14 +74,14 @@ public class CrlOcspExtender {
             List<byte[]> encodedCrls = crlEntries.stream().map(crl -> {
                 try {
                     X509CRL x509crl = (X509CRL) CertificateFactory.getInstance("X.509").generateCRL(new ByteArrayInputStream(crl));
-                    if (logClient.isDebugEnabled()) {
+                    if (logPdfProcessing.isDebugEnabled()) {
                         String message = "\nEmbedding CRL..."
                                          + "\nIssuer DN                   : " + x509crl.getIssuerDN()
                                          + "\nThis update                 : " + x509crl.getThisUpdate()
                                          + "\nNext update                 : " + x509crl.getNextUpdate()
                                          + "\nNo. of revoked certificates : " + ((x509crl.getRevokedCertificates() == null) ?
                                                                                  "0" : x509crl.getRevokedCertificates().size());
-                        logClient.debug(message + " - " + trace.getId());
+                        logPdfProcessing.debug(message + " - " + trace.getId());
                     }
                     return x509crl.getEncoded();
                 } catch (Exception e) {
@@ -94,7 +94,7 @@ public class CrlOcspExtender {
                 try {
                     OCSPResp ocspResp = new OCSPResp(new ByteArrayInputStream(ocsp));
                     BasicOCSPResp basicResp = (BasicOCSPResp) ocspResp.getResponseObject();
-                    if (logClient.isDebugEnabled()) {
+                    if (logPdfProcessing.isDebugEnabled()) {
                         String certificateId = basicResp.getResponses()[0].getCertID().getSerialNumber().toString() + " (" +
                                                basicResp.getResponses()[0].getCertID().getSerialNumber().toString(16).toUpperCase() + ")";
                         String message = "\nEmbedding OCSP Response..."
@@ -105,7 +105,7 @@ public class CrlOcspExtender {
                                          + "\nX509 Cert issuer      : " + basicResp.getCerts()[0].getIssuer()
                                          + "\nX509 Cert subject     : " + basicResp.getCerts()[0].getSubject()
                                          + "\nCertificate ID        : " + certificateId;
-                        logClient.debug(message + " - " + trace.getId());
+                        logPdfProcessing.debug(message + " - " + trace.getId());
                     }
                     return basicResp.getEncoded(); // Add Basic OCSP Response to Collection (ASN.1 encoded representation of this object)
                 } catch (Exception e) {
