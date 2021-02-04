@@ -26,7 +26,10 @@ public enum RevocationInformation {
     PDF("PDF"),
 
     /**
-     * (Deprecated): Alias for PDF for backward compatibility.
+     * Alias for PDF for backward compatibility. Since 1st of December 2020, the PADES signature standard has been replaced
+     * with the PDF option, to better transmit the idea that the revocation information archival attribute is added to the
+     * CMS signature that is returned to the client, as per the PDF reference. This revocation information value (PADES) is now
+     * deprecated and should not be used. Use instead the PDF one, which has the same behaviour.
      *
      * @deprecated Please use the {@link #PDF} element.
      */
@@ -35,13 +38,15 @@ public enum RevocationInformation {
 
     /**
      * Add optional output with revocation information, to be used by clients to create PAdES-compliant signatures.
+     * In order to get an LTV-enabled PDF signature, the client must process the optional output and fill the PDF's DSS (this AIS client
+     * library already does this for your). This is in contrast with the PDF option (see above) that embeds the revocation information
+     * as an archival attribute inside the CMS content, which might trip some strict checkers (e.g. ETSI Signature Conformance Checker).
      */
     PADES_BASELINE("PAdES-baseline"),
 
     /**
-     * (Deprecated): Both RI types (CAdES and PDF) will be provided (for backward compatibility).
+     * Both RI types (CAdES and PDF) will be provided (for backward compatibility).
      */
-    @Deprecated
     BOTH("BOTH"),
 
     /**
