@@ -66,9 +66,11 @@ public class CrlOcspExtender {
     private final PDDocument pdDocument;
     private final COSDocument cosDocument;
     private final byte[] signatureContent;
+    private final byte[] documentBytes;
 
-    public CrlOcspExtender(PDDocument pdDocument, byte[] signatureContent, Trace trace) {
+    public CrlOcspExtender(PDDocument pdDocument, byte[] documentBytes, byte[] signatureContent, Trace trace) {
         this.pdDocument = pdDocument;
+        this.documentBytes = documentBytes;
         this.cosDocument = pdDocument.getDocument();
         this.signatureContent = signatureContent;
         this.trace = trace;
@@ -85,22 +87,23 @@ public class CrlOcspExtender {
             List<byte[]> encodedCrlEntries = getCrlEncodedForm(crlEntries);
             List<byte[]> encodedOcspEntries = getOcspEncodedForm(ocspEntries);
 
-            PDSignature lastSignature = getLastRelevantSignature(pdDocument);
-            // TODO in the iText impl, here it iterates over ALL signatures and adds the CRLs and OCSPs to each one of them
             Map<COSName, ValidationData> validationMap = new HashMap<>();
 
-            // ----------------------------------------------------------------------------------------------------
-            ValidationData vData = new ValidationData();
-            for (byte[] ocsp : encodedOcspEntries) {
-                vData.ocsps.add(buildOCSPResponse(ocsp));
+//            PDSignature lastSignature = getLastRelevantSignature(pdDocument);
+            // TODO in the iText impl, here it iterates over ALL signatures and adds the CRLs and OCSPs to each one of them
+            for (PDSignature pdSignature : pdDocument.getSignatureDictionaries()) {
+                ValidationData vData = new ValidationData();
+                for (byte[] ocsp : encodedOcspEntries) {
+                    vData.ocsps.add(buildOCSPResponse(ocsp));
+                }
+                for (byte[] crl : encodedCrlEntries) {
+                    vData.crls.add(crl);
+                }
+                validationMap.put(COSName.getPDFName(getSignatureHashKey(pdSignature)), vData);
             }
-            for (byte[] crl : encodedCrlEntries) {
-                vData.crls.add(crl);
-            }
-            validationMap.put(COSName.getPDFName(getSignatureHashKey(lastSignature, signatureContent)), vData);
 
             // ----------------------------------------------------------------------------------------------------
-            COSDictionary pdDssDict = (COSDictionary) cosDocumentCatalog.getItem(COSNAME_DSS);
+            COSDictionary pdDssDict = cosDocumentCatalog.getCOSDictionary(COSNAME_DSS);
             COSArray ocsps = null;
             COSArray crls = null;
             COSArray certs = null;
@@ -128,9 +131,7 @@ public class CrlOcspExtender {
                 }
             }
             pdDssDict = (pdDssDict != null) ? pdDssDict : createDictionary(DICTIONARY_DSS);
-            pdDssDict.setDirect(true);
             pdVriDict = (pdVriDict != null) ? pdVriDict : createDictionary(DICTIONARY_VRI);
-            pdVriDict.setDirect(true);
             ocsps = (ocsps != null) ? ocsps : createArray(null, cosDocument);
             crls = (crls != null) ? crls : createArray(null, cosDocument);
             certs = (certs != null) ? certs : createArray(null, cosDocument);
@@ -141,19 +142,18 @@ public class CrlOcspExtender {
                 COSArray crl = createArray(null, cosDocument);
                 COSArray cert = createArray(null, cosDocument);
                 COSDictionary vriDict = createDictionary(DICTIONARY_VRI);
-                vriDict.setDirect(true);
                 for (byte[] ocspBytes : validationData.ocsps) {
-                    COSStream stream = createStream(ocspBytes,cosDocument);
+                    COSStream stream = createStream(ocspBytes, cosDocument);
                     ocsps.add(stream);
                     ocsp.add(stream);
                 }
                 for (byte[] crlBytes : validationData.crls) {
-                    COSStream stream = createStream(crlBytes,cosDocument);
+                    COSStream stream = createStream(crlBytes, cosDocument);
                     crls.add(stream);
                     crl.add(stream);
                 }
                 for (byte[] certBytes : validationData.certs) {
-                    COSStream stream = createStream(certBytes,cosDocument);
+                    COSStream stream = createStream(certBytes, cosDocument);
                     certs.add(stream);
                     cert.add(stream);
                 }
@@ -166,7 +166,6 @@ public class CrlOcspExtender {
                 if (cert.size() > 0) {
                     vriDict.setItem(COSNAME_CERT_SINGLE, cert);
                 }
-                vriDict.setDate(COSName.TU, Calendar.getInstance());
                 pdVriDict.setItem(validationEntry.getKey(), vriDict);
             }
 
@@ -204,12 +203,6 @@ public class CrlOcspExtender {
                 }
 
                 // TODO???
-//                PRIndirectReference pod = (PRIndirectReference)po;
-//                if (pir.getNumber() == pod.getNumber()) {
-//                    all.remove(k);
-//                    --k;
-//                }
-
             }
         }
     }
@@ -256,11 +249,11 @@ public class CrlOcspExtender {
                 X509CRL x509crl = (X509CRL) CertificateFactory.getInstance("X.509").generateCRL(new ByteArrayInputStream(crl));
                 if (logPdfProcessing.isDebugEnabled()) {
                     String message = "\nEmbedding CRL..."
-                                     + "\nIssuer DN                   : " + x509crl.getIssuerDN()
-                                     + "\nThis update                 : " + x509crl.getThisUpdate()
-                                     + "\nNext update                 : " + x509crl.getNextUpdate()
-                                     + "\nNo. of revoked certificates : " + ((x509crl.getRevokedCertificates() == null) ?
-                                                                             "0" : x509crl.getRevokedCertificates().size());
+                            + "\nIssuer DN                   : " + x509crl.getIssuerDN()
+                            + "\nThis update                 : " + x509crl.getThisUpdate()
+                            + "\nNext update                 : " + x509crl.getNextUpdate()
+                            + "\nNo. of revoked certificates : " + ((x509crl.getRevokedCertificates() == null) ?
+                            "0" : x509crl.getRevokedCertificates().size());
                     logPdfProcessing.debug(message + " - " + trace.getId());
                 }
                 return x509crl.getEncoded();
@@ -280,15 +273,15 @@ public class CrlOcspExtender {
                 BasicOCSPResp basicResp = (BasicOCSPResp) ocspResp.getResponseObject();
                 if (logPdfProcessing.isDebugEnabled()) {
                     String certificateId = basicResp.getResponses()[0].getCertID().getSerialNumber().toString() + " (" +
-                                           basicResp.getResponses()[0].getCertID().getSerialNumber().toString(16).toUpperCase() + ")";
+                            basicResp.getResponses()[0].getCertID().getSerialNumber().toString(16).toUpperCase() + ")";
                     String message = "\nEmbedding OCSP Response..."
-                                     + "\nStatus                : " + ((ocspResp.getStatus() == 0) ? "GOOD" : "BAD")
-                                     + "\nProduced at           : " + basicResp.getProducedAt()
-                                     + "\nThis update           : " + basicResp.getResponses()[0].getThisUpdate()
-                                     + "\nNext update           : " + basicResp.getResponses()[0].getNextUpdate()
-                                     + "\nX509 Cert issuer      : " + basicResp.getCerts()[0].getIssuer()
-                                     + "\nX509 Cert subject     : " + basicResp.getCerts()[0].getSubject()
-                                     + "\nCertificate ID        : " + certificateId;
+                            + "\nStatus                : " + ((ocspResp.getStatus() == 0) ? "GOOD" : "BAD")
+                            + "\nProduced at           : " + basicResp.getProducedAt()
+                            + "\nThis update           : " + basicResp.getResponses()[0].getThisUpdate()
+                            + "\nNext update           : " + basicResp.getResponses()[0].getNextUpdate()
+                            + "\nX509 Cert issuer      : " + basicResp.getCerts()[0].getIssuer()
+                            + "\nX509 Cert subject     : " + basicResp.getCerts()[0].getSubject()
+                            + "\nCertificate ID        : " + certificateId;
                     logPdfProcessing.debug(message + " - " + trace.getId());
                 }
                 return basicResp.getEncoded(); // Add Basic OCSP Response to Collection (ASN.1 encoded representation of this object)
@@ -302,7 +295,7 @@ public class CrlOcspExtender {
     public COSDictionary createDictionary(String name) {
         COSDictionary dictionary = new COSDictionary();
         dictionary.setNeedToBeUpdated(true);
-        dictionary.setName(COSName.TYPE, name);
+        dictionary.setName(COSNAME_TYPE, name);
         return dictionary;
     }
 
@@ -322,10 +315,10 @@ public class CrlOcspExtender {
     public COSStream createStream(byte[] data, COSDocument cosDocument) throws IOException {
         COSStream stream = cosDocument.createCOSStream();
         stream.setNeedToBeUpdated(true);
-        final OutputStream unfilteredStream = stream.createOutputStream(COSName.FLATE_DECODE);
-        unfilteredStream.write(data);
-        unfilteredStream.flush();
-        // unfilteredStream.close();
+        try (OutputStream unfilteredStream = stream.createOutputStream(COSName.FLATE_DECODE)) {
+            unfilteredStream.write(data);
+            unfilteredStream.flush();
+        }
         return stream;
     }
 
@@ -343,23 +336,13 @@ public class CrlOcspExtender {
         return seq.getEncoded();
     }
 
-    private String getSignatureHashKey(PDSignature signature, byte[] signatureContent) throws NoSuchAlgorithmException, IOException {
+    private String getSignatureHashKey(PDSignature signature) throws NoSuchAlgorithmException, IOException {
         // TODO
-//        PdfDictionary dic = acroFields.getSignatureDictionary(signatureName);
-//        PdfString contents = dic.getAsString(PdfName.CONTENTS);
-//        byte[] bc = null;
-//        if(!reader.isEncrypted()) {
-//            bc = contents.getOriginalBytes();
-//        }else{
-//            bc = contents.getBytes();
-//        }
-        byte[] contentToConvert;
+        byte[] contentToConvert = signature.getContents(documentBytes);
         if (SignatureType.TIMESTAMP.getUri().equals(signature.getSubFilter())) {
-            ASN1InputStream din = new ASN1InputStream(new ByteArrayInputStream(signatureContent));
+            ASN1InputStream din = new ASN1InputStream(new ByteArrayInputStream(contentToConvert));
             ASN1Primitive pkcs = din.readObject();
             contentToConvert = pkcs.getEncoded();
-        } else {
-            contentToConvert = signatureContent;
         }
         return Utils.convertToHexString(Utils.hashBytesWithSha1(contentToConvert));
     }

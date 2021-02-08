@@ -112,10 +112,12 @@ public class PdfDocument {
             contentIn.close();
             inMemoryStream.close();
 
-            if (crlEntries != null || ocspEntries != null) {
-                pdDocument = PDDocument.load(inMemoryStream.toByteArray());
+            byte[] documentBytes = inMemoryStream.toByteArray();
 
-                CrlOcspExtender metadata = new CrlOcspExtender(pdDocument, signatureContent, trace);
+            if (crlEntries != null || ocspEntries != null) {
+                pdDocument = PDDocument.load(documentBytes);
+
+                CrlOcspExtender metadata = new CrlOcspExtender(pdDocument, documentBytes, signatureContent, trace);
                 metadata.extendPdfWithCrlAndOcsp(crlEntries, ocspEntries);
 
                 pdDocument.saveIncremental(contentOut);

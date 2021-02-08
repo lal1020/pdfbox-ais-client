@@ -3,6 +3,7 @@ package com.swisscom.ais;
 import com.swisscom.ais.client.impl.AisClientImpl;
 import com.swisscom.ais.client.model.PdfHandle;
 import com.swisscom.ais.client.model.SignatureResult;
+import com.swisscom.ais.client.model.SignatureStandard;
 import com.swisscom.ais.client.model.UserData;
 import com.swisscom.ais.client.rest.RestClientConfiguration;
 import com.swisscom.ais.client.rest.RestClientImpl;
@@ -26,6 +27,7 @@ public class TestOnDemandSignature {
             UserData userData = new UserData();
             userData.setFromProperties(properties);
             userData.setConsentUrlCallback((consentUrl, userData1) -> System.out.println("Consent URL: " + consentUrl));
+            userData.setSignatureStandard(SignatureStandard.PADES_BASELINE);
 
             PdfHandle document = new PdfHandle();
             document.setInputFromFile(properties.getProperty("local.test.inputFile"));
