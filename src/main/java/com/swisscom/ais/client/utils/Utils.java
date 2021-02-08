@@ -8,6 +8,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.UUID;
 
 public class Utils {
@@ -72,6 +74,23 @@ public class Utils {
         }
     }
 
+    public static String copyFileFromClasspathToString(String inputFile) {
+        try {
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            InputStream is = Cli.class.getResourceAsStream(inputFile);
+            byte[] buffer = new byte[1024];
+            int bytesRead;
+            while ((bytesRead = is.read(buffer)) > 0) {
+                baos.write(buffer, 0, bytesRead);
+            }
+            is.close();
+            baos.close();
+            return new String(baos.toByteArray(), StandardCharsets.UTF_8);
+        } catch (IOException e) {
+            throw new AisClientException("Failed to copy the file: [" + inputFile + "] to string");
+        }
+    }
+
     public static void copyFileFromClasspathToDisk(String inputFile, String outputFile) {
         try {
             FileOutputStream fos = new FileOutputStream(outputFile);
@@ -103,6 +122,23 @@ public class Utils {
         } catch (IOException e) {
             throw new AisClientException("Failed to copy file: [" + inputFile + "] to STDOUT");
         }
+    }
+
+    public static byte[] hashBytesWithSha1(byte[] b) throws NoSuchAlgorithmException {
+        MessageDigest sh = MessageDigest.getInstance("SHA1");
+        return sh.digest(b);
+    }
+
+    private static final byte[] HEX_ARRAY = "0123456789ABCDEF".getBytes(StandardCharsets.US_ASCII);
+
+    public static String convertToHexString(byte[] bytes) {
+        byte[] hexChars = new byte[bytes.length * 2];
+        for (int j = 0; j < bytes.length; j++) {
+            int v = bytes[j] & 0xFF;
+            hexChars[j * 2] = HEX_ARRAY[v >>> 4];
+            hexChars[j * 2 + 1] = HEX_ARRAY[v & 0x0F];
+        }
+        return new String(hexChars, StandardCharsets.UTF_8);
     }
 
 }

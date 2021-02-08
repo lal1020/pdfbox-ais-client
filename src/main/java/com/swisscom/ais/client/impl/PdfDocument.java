@@ -85,7 +85,8 @@ public class PdfDocument {
         // defines the signature as an author signature (see 12.8, “Digital Signatures”). The values 1 through 3
         // shall be used for certification signatures and correspond to the value of P in a DocMDP transform
         // parameters dictionary
-        SigUtils.setMDPPermission(pdDocument, pdSignature, 0);
+        // TODO
+        //SigUtils.setMDPPermission(pdDocument, pdSignature, 0);
 
         pdSignature.setName(userData.getSignatureName());
         pdSignature.setReason(userData.getSignatureReason());
@@ -111,9 +112,7 @@ public class PdfDocument {
             contentIn.close();
             inMemoryStream.close();
 
-            // for now, both set of entries must be available for extending the PDF
-            // perhaps only one of them could also be extended?
-            if (crlEntries != null && ocspEntries != null) {
+            if (crlEntries != null || ocspEntries != null) {
                 pdDocument = PDDocument.load(inMemoryStream.toByteArray());
 
                 CrlOcspExtender metadata = new CrlOcspExtender(pdDocument, signatureContent, trace);
