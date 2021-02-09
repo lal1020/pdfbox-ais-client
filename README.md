@@ -37,6 +37,18 @@ You can also add the following parameters for extra help:
 - _-vv_: even more verbose log output (sets all the client loggers to debug, plus the Apache HTTP Client to debug, showing input and output HTTP traffic)
 - _-config_: select a custom properties file for configuration (by default it looks for the one named _config.properties_)
 
+More than one file can be signed/timestamped at once:
+```shell
+java -jar pdfbox-ais-1.0.0-full.jar -input doc1.pdf -input doc2.pdf -input doc3.pdf -type ondemand-stepup
+```
+
+You don't have to specify the output file:
+```shell
+java -jar pdfbox-ais-1.0.0-full.jar -input doc1.pdf -type ondemand-stepup
+```
+The output file name is composed from the input file name plus a configurable _suffix_ (by default it is "-signed-#time", where _#time_
+is replaced at runtime with the current date and time). 
+
 ### Programmatic usage
 Once you add the AIS client library as a dependency to your project, you can configure it in the following way:
 ```java

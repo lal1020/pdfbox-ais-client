@@ -19,7 +19,7 @@ public class Utils {
     }
 
     public static String generateDocumentId() {
-        return "DOC-" + System.currentTimeMillis();
+        return "DOC-" + UUID.randomUUID().toString();
     }
 
     public static String getStringNotNull(ConfigurationProvider provider, String propertyName) {
@@ -139,6 +139,14 @@ public class Utils {
             hexChars[j * 2 + 1] = HEX_ARRAY[v & 0x0F];
         }
         return new String(hexChars, StandardCharsets.UTF_8);
+    }
+
+    public static boolean isEmpty(String value) {
+        return value == null || value.trim().length() == 0;
+    }
+
+    public static boolean notEmpty(String value) {
+        return value != null && value.trim().length() > 0;
     }
 
 }

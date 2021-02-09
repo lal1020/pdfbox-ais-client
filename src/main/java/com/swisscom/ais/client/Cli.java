@@ -2,9 +2,7 @@ package com.swisscom.ais.client;
 
 import com.swisscom.ais.client.impl.AisClientImpl;
 import com.swisscom.ais.client.model.PdfHandle;
-import com.swisscom.ais.client.model.RevocationInformation;
 import com.swisscom.ais.client.model.SignatureResult;
-import com.swisscom.ais.client.model.SignatureStandard;
 import com.swisscom.ais.client.model.UserData;
 import com.swisscom.ais.client.rest.RestClientConfiguration;
 import com.swisscom.ais.client.rest.RestClientImpl;
@@ -16,7 +14,10 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.util.Collections;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Properties;
 
 import ch.qos.logback.classic.Level;
@@ -27,6 +28,7 @@ public class Cli {
 
     private static final String PARAM_INPUT = "input";
     private static final String PARAM_OUTPUT = "output";
+    private static final String PARAM_OUTPUT_SUFFIX = "outputSuffix";
     private static final String PARAM_CONFIG = "config";
     private static final String PARAM_INIT = "init";
     private static final String PARAM_TYPE = "type";
@@ -34,6 +36,7 @@ public class Cli {
     private static final String PARAM_VERBOSE1 = "v";
     private static final String PARAM_VERBOSE2 = "vv";
     private static final String SEPARATOR = "--------------------------------------------------------------------------------";
+    private static final String SUFFIX_DEFAULT = "-signed-#time";
 
     private static final String TYPE_STATIC = "static";
     private static final String TYPE_ON_DEMAND = "ondemand";
@@ -45,8 +48,9 @@ public class Cli {
     private static boolean continueExecution;
     private static String startFolder;
 
-    private static String inputFile;
+    private static List<String> inputFileList = new LinkedList<>();
     private static String outputFile;
+    private static String suffix;
     private static String configFile;
     private static String type;
     private static int verboseLevel;
@@ -66,8 +70,9 @@ public class Cli {
         System.out.println(SEPARATOR);
         System.out.println("Starting with following parameters:");
         System.out.println("Config            : " + configFile);
-        System.out.println("Input file        : " + inputFile);
+        System.out.println("Input file(s)     : " + inputFileList);
         System.out.println("Output file       : " + outputFile);
+        System.out.println("Suffix            : " + suffix);
         System.out.println("Type of signature : " + type);
         System.out.println("Verbose level     : " + verboseLevel);
         System.out.println(SEPARATOR);
@@ -87,32 +92,40 @@ public class Cli {
         try (AisClientImpl aisClient = new AisClientImpl(aisConfig, restClient)) {
             UserData userData = new UserData();
             userData.setFromProperties(properties);
-            userData.setConsentUrlCallback((consentUrl, userData1) -> System.out.println("Consent URL: " + consentUrl));
-            userData.setAddRevocationInformation(RevocationInformation.PADES);
-            userData.setAddTimestamp(true);
-            userData.setSignatureStandard(SignatureStandard.PADES);
+            userData.setConsentUrlCallback((consentUrl, userData1) -> {
+                System.out.println(SEPARATOR);
+                System.out.println("Consent URL: " + consentUrl);
+                System.out.println(SEPARATOR);
+            });
 
-            PdfHandle document = new PdfHandle();
-            document.setInputFromFile(inputFile);
-            document.setOutputToFile(outputFile);
+            List<PdfHandle> documentsToSign = new LinkedList<>();
+            for (String inputFile : inputFileList) {
+                PdfHandle document = new PdfHandle();
+                document.setInputFromFile(inputFile);
+                if (outputFile != null) {
+                    document.setOutputToFile(outputFile);
+                } else {
+                    document.setOutputToFile(generateOutputFileName(inputFile, suffix));
+                }
+                documentsToSign.add(document);
+            }
 
             SignatureResult result;
-
             switch (type) {
                 case TYPE_STATIC: {
-                    result = aisClient.signWithStaticCertificate(Collections.singletonList(document), userData);
+                    result = aisClient.signWithStaticCertificate(documentsToSign, userData);
                     break;
                 }
                 case TYPE_ON_DEMAND: {
-                    result = aisClient.signWithOnDemandCertificate(Collections.singletonList(document), userData);
+                    result = aisClient.signWithOnDemandCertificate(documentsToSign, userData);
                     break;
                 }
                 case TYPE_ON_DEMAND_STEP_UP: {
-                    result = aisClient.signWithOnDemandCertificateAndStepUp(Collections.singletonList(document), userData);
+                    result = aisClient.signWithOnDemandCertificateAndStepUp(documentsToSign, userData);
                     break;
                 }
                 case TYPE_TIMESTAMP: {
-                    result = aisClient.timestamp(Collections.singletonList(document), userData);
+                    result = aisClient.timestamp(documentsToSign, userData);
                     break;
                 }
                 default: {
@@ -163,7 +176,7 @@ public class Cli {
                 }
                 case PARAM_INPUT: {
                     if (argIndex + 1 < args.length) {
-                        inputFile = args[argIndex + 1];
+                        inputFileList.add(args[argIndex + 1]);
                         argIndex++;
                     } else {
                         showHelp("Input file name is missing");
@@ -201,12 +214,19 @@ public class Cli {
             }
             argIndex++;
         }
-        if (inputFile == null) {
+        if (inputFileList.size() == 0) {
             showHelp("Input file name is missing");
             return;
         }
-        if (outputFile == null) {
-            showHelp("Output file name is missing");
+        if (outputFile != null && suffix != null) {
+            showHelp("Both output and suffix are configured. Only one of them can be used");
+            return;
+        }
+        if (outputFile == null && suffix == null) {
+            suffix = SUFFIX_DEFAULT;
+        }
+        if (outputFile != null && inputFileList.size() > 1) {
+            showHelp("Cannot use output with multiple input files. Please use suffix instead");
             return;
         }
         if (configFile == null) {
@@ -229,6 +249,7 @@ public class Cli {
     private static void runInit() {
         String[][] configPairs = new String[][]{
             new String[]{"/cli-files/config-sample.properties", "config.properties"},
+            new String[]{"/cli-files/config-help.properties", "config-help.properties"},
             new String[]{"/cli-files/logback-sample.xml", "logback.xml"}
         };
         for (String[] configPair : configPairs) {
@@ -290,6 +311,17 @@ public class Cli {
         Logger logger = loggerContext.getLogger(loggerName);
         if (logger != null) {
             logger.setLevel(Level.toLevel(level));
+        }
+    }
+
+    private static String generateOutputFileName(String inputFile, String suffix) {
+        DateTimeFormatter timePattern = DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss");
+        String finalSuffix = suffix.replaceAll("#time", timePattern.format(LocalDateTime.now()));
+        int lastDotIndex = inputFile.lastIndexOf('.');
+        if (lastDotIndex < 0) {
+            return inputFile + finalSuffix;
+        } else {
+            return inputFile.substring(0, lastDotIndex) + finalSuffix + inputFile.substring(lastDotIndex);
         }
     }
 

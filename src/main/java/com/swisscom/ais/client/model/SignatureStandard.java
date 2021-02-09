@@ -1,5 +1,7 @@
 package com.swisscom.ais.client.model;
 
+import java.util.Arrays;
+
 public enum SignatureStandard {
 
     /**
@@ -49,6 +51,14 @@ public enum SignatureStandard {
 
     public String getValue() {
         return value;
+    }
+
+    public static SignatureStandard getByValue(String value) {
+        return Arrays
+            .stream(values())
+            .filter(item -> item.getValue().equalsIgnoreCase(value))
+            .findFirst()
+            .orElseThrow(() -> new IllegalArgumentException("Invalid signature standard value: " + value));
     }
 
 }

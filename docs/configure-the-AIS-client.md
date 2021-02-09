@@ -36,6 +36,18 @@ client.poll.intervalInSeconds=10
 # respective request.
 client.poll.rounds=10
 # --
+# The standard to use for creating the signature.
+# Choose from: DEFAULT, CAdES, PDF, PAdES, PAdES-Baseline, PLAIN.
+# Leave it empty and the client will use sensible defaults.
+signature.standard=PAdES-Baseline
+# The type and method of revocation information to receive from the server.
+# Choose from: DEFAULT, CAdES, PDF, PAdES, PAdES-Baseline, BOTH, PLAIN.
+# Leave it empty and the client will use sensible defaults.
+signature.revocationInformation=PAdES
+# Whether to add a timestamp to the signature or not. Default is true.
+# Leave it empty and the client will use sensible defaults.
+signature.addTimestamp=true
+# --
 # The AIS Claimed Identity name. The right Claimed Identity (and key, see below) must be used for the right signature type.
 signature.claimedIdentityName=ais-90days-trial
 # The AIS Claimed Identity key. The key together with the name (see above) is used for starting the correct signature type.
@@ -176,6 +188,17 @@ swisscom:
       # respective request.
       poll.rounds: 10
     signature:
+      # The standard to use for creating the signature.
+      # Choose from: DEFAULT, CAdES, PDF, PAdES, PAdES-Baseline, PLAIN.
+      # Leave it empty and the client will use sensible defaults.
+      standard: PAdES-Baseline
+      # The type and method of revocation information to receive from the server.
+      # Choose from: DEFAULT, CAdES, PDF, PAdES, PAdES-Baseline, BOTH, PLAIN.
+      # Leave it empty and the client will use sensible defaults.
+      revocationInformation: PAdES
+      # Whether to add a timestamp to the signature or not. Default is true.
+      # Leave it empty and the client will use sensible defaults.
+      addTimestamp: true
       # The AIS Claimed Identity name. The right Claimed Identity (and key, see below) must be used for the right signature type.
       claimedIdentityName: ais-90days-trial
       # The AIS Claimed Identity key. The key together with the name (see above) is used for starting the correct signature type.

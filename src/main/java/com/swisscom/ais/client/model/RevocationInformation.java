@@ -1,5 +1,7 @@
 package com.swisscom.ais.client.model;
 
+import java.util.Arrays;
+
 public enum RevocationInformation {
 
     /**
@@ -62,6 +64,14 @@ public enum RevocationInformation {
 
     public String getValue() {
         return value;
+    }
+
+    public static RevocationInformation getByValue(String value) {
+        return Arrays
+            .stream(values())
+            .filter(item -> item.getValue().equalsIgnoreCase(value))
+            .findFirst()
+            .orElseThrow(() -> new IllegalArgumentException("Invalid revocation information value: " + value));
     }
 
 }

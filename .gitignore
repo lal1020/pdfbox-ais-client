@@ -36,3 +36,4 @@ docs/*.pdf
 gen-material/gen
 
 local-*.*
+config.properties

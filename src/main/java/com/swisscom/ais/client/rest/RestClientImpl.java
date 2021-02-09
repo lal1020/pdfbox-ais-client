@@ -223,7 +223,9 @@ public class RestClientImpl implements RestClient {
     public static PrivateKey getPrivateKey(String filename, String keyPassword) throws IOException {
         PEMParser pemParser = new PEMParser(new InputStreamReader(new FileInputStream(filename)));
         PEMEncryptedKeyPair encryptedKeyPair = (PEMEncryptedKeyPair) pemParser.readObject();
-        PEMDecryptorProvider decryptorProvider = new JcePEMDecryptorProviderBuilder().build(keyPassword.toCharArray());
+        PEMDecryptorProvider decryptorProvider = new JcePEMDecryptorProviderBuilder()
+            .setProvider("BC")
+            .build(keyPassword.toCharArray());
         PEMKeyPair pemKeyPair = encryptedKeyPair.decryptKeyPair(decryptorProvider);
 
         JcaPEMKeyConverter converter = new JcaPEMKeyConverter().setProvider("BC");

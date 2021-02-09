@@ -8,12 +8,17 @@ import com.swisscom.ais.client.utils.SigUtils;
 import com.swisscom.ais.client.utils.Trace;
 import com.swisscom.ais.client.utils.Utils;
 
+import org.apache.pdfbox.cos.COSArray;
+import org.apache.pdfbox.cos.COSDictionary;
 import org.apache.pdfbox.cos.COSName;
 import org.apache.pdfbox.io.IOUtils;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.interactive.digitalsignature.ExternalSigningSupport;
+import org.apache.pdfbox.pdmodel.interactive.digitalsignature.PDSeedValue;
+import org.apache.pdfbox.pdmodel.interactive.digitalsignature.PDSeedValueMDP;
 import org.apache.pdfbox.pdmodel.interactive.digitalsignature.PDSignature;
 import org.apache.pdfbox.pdmodel.interactive.digitalsignature.SignatureOptions;
+import org.apache.pdfbox.pdmodel.interactive.form.PDSignatureField;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -76,18 +81,6 @@ public class PdfDocument {
             pdSignature.setSignDate(signDate);
         }
 
-        // set this access permissions level to 0, to ensure we just sign the PDF not certify it
-        // for more details: https://wwwimages2.adobe.com/content/dam/acom/en/devnet/pdf/pdfs/PDF32000_2008.pdf see section 12.8.2.2.2
-        // --
-        // There it says:
-        // --
-        // A dictionary containing a single entry whose key is P and whose value is an integer between 0 and 3. A value of 0
-        // defines the signature as an author signature (see 12.8, “Digital Signatures”). The values 1 through 3
-        // shall be used for certification signatures and correspond to the value of P in a DocMDP transform
-        // parameters dictionary
-        // TODO
-        //SigUtils.setMDPPermission(pdDocument, pdSignature, 0);
-
         pdSignature.setName(userData.getSignatureName());
         pdSignature.setReason(userData.getSignatureReason());
         pdSignature.setLocation(userData.getSignatureLocation());
@@ -97,6 +90,30 @@ public class PdfDocument {
         options.setPreferredSignatureSize(signatureType.getEstimatedSignatureSizeInBytes());
 
         pdDocument.addSignature(pdSignature, options);
+
+        // Set this signature's access permissions level to 0, to ensure we just sign the PDF not certify it
+        // for more details: https://wwwimages2.adobe.com/content/dam/acom/en/devnet/pdf/pdfs/PDF32000_2008.pdf see section 12.7.4.5
+        // TODO what if there are more signature in the PDF?
+        List<PDSignatureField> signatureFields = pdDocument.getSignatureFields();
+        PDSignatureField pdSignatureField = signatureFields.get(0);
+
+        PDSeedValue pdSeedValue = pdSignatureField.getSeedValue();
+        if (pdSeedValue == null) {
+            COSDictionary newSeedValueDict = new COSDictionary();
+            newSeedValueDict.setNeedToBeUpdated(true);
+            pdSeedValue = new PDSeedValue(newSeedValueDict);
+            pdSignatureField.setSeedValue(pdSeedValue);
+        }
+
+        PDSeedValueMDP pdSeedValueMDP = pdSeedValue.getMDP();
+        if (pdSeedValueMDP == null) {
+            COSDictionary newMDPDict = new COSDictionary();
+            newMDPDict.setNeedToBeUpdated(true);
+            pdSeedValueMDP = new PDSeedValueMDP(newMDPDict);
+            pdSeedValue.setMPD(pdSeedValueMDP);
+        }
+        pdSeedValueMDP.setP(0); // identify this signature as an author signature, not document certification
+
         pbSigningSupport = pdDocument.saveIncrementalForExternalSigning(inMemoryStream);
 
         MessageDigest digest = MessageDigest.getInstance(digestAlgorithm.getDigestAlgorithm());
@@ -129,6 +146,40 @@ public class PdfDocument {
         } catch (Exception e) {
             throw new AisClientException("Failed to embed the signature(s) in the document(s) and close the streams - " + trace.getId(), e);
         }
+    }
+
+    // ----------------------------------------------------------------------------------------------------
+
+    public static void setMDPPermissionsForSignatureOnly(PDDocument doc, PDSignature signature) {
+        COSDictionary transformParameters = new COSDictionary();
+        transformParameters.setItem(COSName.TYPE, COSName.getPDFName("TransformParams"));
+        transformParameters.setInt(COSName.P, 1); // no changes to the document shall be permitted // TODO
+        transformParameters.setName(COSName.V, "1.2");
+        transformParameters.setNeedToBeUpdated(true);
+
+        COSDictionary referenceDict = new COSDictionary();
+        referenceDict.setItem(COSName.TYPE, COSName.getPDFName("SigRef"));
+        referenceDict.setItem("TransformMethod", COSName.DOCMDP);
+        referenceDict.setItem("DigestMethod", COSName.getPDFName("SHA1"));
+        referenceDict.setItem("TransformParams", transformParameters);
+        referenceDict.setNeedToBeUpdated(true);
+
+        COSArray referenceArray = new COSArray();
+        referenceArray.add(referenceDict);
+        referenceArray.setNeedToBeUpdated(true);
+
+        COSDictionary sigDict = signature.getCOSObject();
+        sigDict.setItem("Reference", referenceArray);
+
+        // Catalog
+        COSDictionary permsDict = new COSDictionary();
+        permsDict.setItem(COSName.DOCMDP, signature);
+
+        COSDictionary catalogDict = doc.getDocumentCatalog().getCOSObject();
+        catalogDict.setItem(COSName.PERMS, permsDict);
+
+        catalogDict.setNeedToBeUpdated(true);
+        permsDict.setNeedToBeUpdated(true);
     }
 
     // ----------------------------------------------------------------------------------------------------

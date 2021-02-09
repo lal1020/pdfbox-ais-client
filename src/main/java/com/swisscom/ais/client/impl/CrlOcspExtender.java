@@ -201,8 +201,7 @@ public class CrlOcspExtender {
                 if (allEntry.isDirect()) {
                     continue;
                 }
-
-                // TODO???
+                // TODO
             }
         }
     }
@@ -296,6 +295,7 @@ public class CrlOcspExtender {
         COSDictionary dictionary = new COSDictionary();
         dictionary.setNeedToBeUpdated(true);
         dictionary.setName(COSNAME_TYPE, name);
+        dictionary.setDirect(true);
         return dictionary;
     }
 

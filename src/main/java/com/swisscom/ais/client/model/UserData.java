@@ -4,6 +4,7 @@ import com.swisscom.ais.client.AisClientException;
 import com.swisscom.ais.client.utils.ConfigurationProvider;
 import com.swisscom.ais.client.utils.ConfigurationProviderPropertiesImpl;
 import com.swisscom.ais.client.utils.Trace;
+import com.swisscom.ais.client.utils.Utils;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -222,6 +223,18 @@ public class UserData {
         signatureReason = provider.getProperty("signature.reason");
         signatureLocation = provider.getProperty("signature.location");
         signatureContactInfo = provider.getProperty("signature.contactInfo");
+        String value = provider.getProperty("signature.standard");
+        if (Utils.notEmpty(value)) {
+            signatureStandard = SignatureStandard.getByValue(value);
+        }
+        value = provider.getProperty("signature.revocationInformation");
+        if (Utils.notEmpty(value)) {
+            addRevocationInformation = RevocationInformation.getByValue(value);
+        }
+        value = provider.getProperty("signature.addTimestamp");
+        if (Utils.notEmpty(value)) {
+            addTimestamp = Boolean.parseBoolean(value);
+        }
     }
 
     public void validateYourself(SignatureMode signatureMode, Trace trace) {
