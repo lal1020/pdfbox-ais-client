@@ -28,7 +28,7 @@ public class Cli {
 
     private static final String PARAM_INPUT = "input";
     private static final String PARAM_OUTPUT = "output";
-    private static final String PARAM_OUTPUT_SUFFIX = "outputSuffix";
+    private static final String PARAM_SUFFIX = "suffix";
     private static final String PARAM_CONFIG = "config";
     private static final String PARAM_INIT = "init";
     private static final String PARAM_TYPE = "type";
@@ -189,6 +189,15 @@ public class Cli {
                         argIndex++;
                     } else {
                         showHelp("Output file name is missing");
+                    }
+                    break;
+                }
+                case PARAM_SUFFIX: {
+                    if (argIndex + 1 < args.length) {
+                        suffix = args[argIndex + 1];
+                        argIndex++;
+                    } else {
+                        showHelp("Suffix value is missing");
                     }
                     break;
                 }
