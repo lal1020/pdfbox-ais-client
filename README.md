@@ -21,15 +21,19 @@ the AIS client. The following snippets assume that you are already set up.
 ### Command line usage
 Get a help listing by calling the client without any parameters:
 ```shell
-java -jar pdfbox-ais-1.0.0-full.jar
+./bin/ais-client.sh
+```
+or
+```shell
+./bin/ais-client.sh -help
 ```
 Get a default configuration file set in the current folder using the _-init_ parameter:
 ```shell
-java -jar pdfbox-ais-1.0.0-full.jar -init
+./bin/ais-client.sh -init
 ```
 Apply an On Demand signature with Step Up on a local PDF file:
 ```shell
-java -jar pdfbox-ais-1.0.0-full.jar -input local-sample-doc.pdf -output test-sign.pdf -type ondemand-stepup
+./bin/ais-client.sh -type ondemand-stepup -input local-sample-doc.pdf -output test-sign.pdf
 ```
 You can also add the following parameters for extra help:
 
@@ -39,15 +43,18 @@ You can also add the following parameters for extra help:
 
 More than one file can be signed/timestamped at once:
 ```shell
-java -jar pdfbox-ais-1.0.0-full.jar -input doc1.pdf -input doc2.pdf -input doc3.pdf -type ondemand-stepup
+./bin/ais-client.sh -type ondemand-stepup -input doc1.pdf -input doc2.pdf -input doc3.pdf
 ```
 
 You don't have to specify the output file:
 ```shell
-java -jar pdfbox-ais-1.0.0-full.jar -input doc1.pdf -type ondemand-stepup
+./bin/ais-client.sh -type ondemand-stepup -input doc1.pdf -type ondemand-stepup
 ```
 The output file name is composed from the input file name plus a configurable _suffix_ (by default it is "-signed-#time", where _#time_
-is replaced at runtime with the current date and time). 
+is replaced at runtime with the current date and time). You can customize this suffix:
+```shell
+./bin/ais-client.sh -type ondemand-stepup -input doc1.pdf -suffix -output-#time 
+```
 
 ### Programmatic usage
 Once you add the AIS client library as a dependency to your project, you can configure it in the following way:

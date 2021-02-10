@@ -1,7 +1,7 @@
 --------------------------------------------------------------------------------
 Swisscom AIS Client - Command line interface
 --------------------------------------------------------------------------------
-Usage: java -jar pdfbox-ais-X.X.X-full.jar [OPTIONS]
+Usage: ./bin/ais-client.sh [OPTIONS]
 
 Options:
     -init                                               - Create sample configuration files in the current folder
@@ -28,7 +28,7 @@ Options:
     -vv                                                 - Be EXTRA verbose about what is going on (sets Logback config to debug)
 
 Use cases:
-    1. > java -jar pdfbox-ais-X.X.X-full.jar -init   => Have the config files generated for you in the current folder
+    1. > ./bin/ais-client.sh -init   => Have the config files generated for you in the current folder
     2. Edit the files accordingly
-    3. > java -jar pdfbox-ais-X.X.X-full.jar -config config.properties -input fileIn.pdf -output fileOut.pdf -type timestamp
-    4. > java -jar pdfbox-ais-X.X.X-full.jar -input file1.pdf -input file2.pdf -input file3.pdf -type timestamp
+    3. > ./bin/ais-client.sh -type timestamp -config config.properties -input fileIn.pdf -output fileOut.pdf
+    4. > ./bin/ais-client.sh -type timestamp -input file1.pdf -input file2.pdf -input file3.pdf

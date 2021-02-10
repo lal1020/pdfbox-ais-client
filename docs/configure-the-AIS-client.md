@@ -80,7 +80,7 @@ CLI interface or you can use it to populate the objects that configure the clien
 
 *CLI usage:*
 ```shell
-java -jar pdfbox-ais-1.0.0-full.jar -config config.properties -input local-sample-doc.pdf -output test-sign.pdf -type ondemand-stepup
+./bin/ais-client.sh -type ondemand-stepup -config config.properties -input local-sample-doc.pdf -output test-sign.pdf
 ```
 
 *Programmatic usage:*
