@@ -52,8 +52,6 @@ public class RestClientConfiguration {
     }
 
     public void setClientKeyPassword(String clientKeyPassword) {
-        valueNotEmpty(clientKeyPassword,
-                      "The clientKeyPassword parameter of the REST client configuration must not be empty", null);
         this.clientKeyPassword = clientKeyPassword;
     }
 
@@ -159,7 +157,7 @@ public class RestClientConfiguration {
         setRestServiceSignUrl(getStringNotNull(provider, "server.rest.signUrl"));
         setRestServicePendingUrl(getStringNotNull(provider, "server.rest.pendingUrl"));
         setClientKeyFile(getStringNotNull(provider, "client.auth.keyFile"));
-        setClientKeyPassword(getStringNotNull(provider, "client.auth.keyPassword"));
+        setClientKeyPassword(provider.getProperty("client.auth.keyPassword"));
         setClientCertificateFile(getStringNotNull(provider, "client.cert.file"));
         setServerCertificateFile(getStringNotNull(provider, "server.cert.file"));
         setMaxTotalConnections(getIntNotNull(provider, "client.http.maxTotalConnections"));

@@ -76,7 +76,7 @@ public class RestClientImpl implements RestClient {
         try {
             SSLContextBuilder sslContextBuilder = SSLContexts.custom()
                 .loadKeyMaterial(produceTheKeyStore(config),
-                                 config.getClientKeyPassword().toCharArray(), produceAPrivateKeyStrategy());
+                                 keyToCharArray(config.getClientKeyPassword()), produceAPrivateKeyStrategy());
             sslContextBuilder.loadTrustMaterial(produceTheTrustStore(config), null);
             sslConnectionSocketFactory = new SSLConnectionSocketFactory(sslContextBuilder.build());
         } catch (Exception e) {
@@ -195,8 +195,7 @@ public class RestClientImpl implements RestClient {
 
             KeyStore keyStore = KeyStore.getInstance("jks");
             keyStore.load(null, null);
-            // the keystore password is not used at this point, can be any value
-            keyStore.setKeyEntry("main", privateKey, "secret".toCharArray(), new Certificate[]{certificate});
+            keyStore.setKeyEntry("main", privateKey, keyToCharArray(config.getClientKeyPassword()), new Certificate[]{certificate});
 
             return keyStore;
         } catch (Exception e) {
@@ -222,18 +221,24 @@ public class RestClientImpl implements RestClient {
 
     public static PrivateKey getPrivateKey(String filename, String keyPassword) throws IOException {
         PEMParser pemParser = new PEMParser(new InputStreamReader(new FileInputStream(filename)));
-        PEMEncryptedKeyPair encryptedKeyPair = (PEMEncryptedKeyPair) pemParser.readObject();
-        PEMDecryptorProvider decryptorProvider = new JcePEMDecryptorProviderBuilder()
-            .setProvider("BC")
-            .build(keyPassword.toCharArray());
-        PEMKeyPair pemKeyPair = encryptedKeyPair.decryptKeyPair(decryptorProvider);
-
+        PEMKeyPair keyPair;
+        if (Utils.isEmpty(keyPassword)) {
+            keyPair = (PEMKeyPair) pemParser.readObject();
+        } else {
+            PEMEncryptedKeyPair encryptedKeyPair = (PEMEncryptedKeyPair) pemParser.readObject();
+            PEMDecryptorProvider decryptorProvider = new JcePEMDecryptorProviderBuilder().setProvider("BC").build(keyPassword.toCharArray());
+            keyPair = encryptedKeyPair.decryptKeyPair(decryptorProvider);
+        }
         JcaPEMKeyConverter converter = new JcaPEMKeyConverter().setProvider("BC");
-        return converter.getPrivateKey(pemKeyPair.getPrivateKeyInfo());
+        return converter.getPrivateKey(keyPair.getPrivateKeyInfo());
     }
 
     private PrivateKeyStrategy produceAPrivateKeyStrategy() {
         return (aliases, sslParameters) -> "main";
+    }
+
+    private char[] keyToCharArray(String key) {
+        return Utils.isEmpty(key) ? new char[0] : key.toCharArray();
     }
 
 }

@@ -167,7 +167,7 @@ swisscom:
     client:
       # The client's private key file (corresponding to the public key attached to the client's certificate)
       auth.keyFile: /home/user/ais-client.key
-      # The password of the client's private key
+      # The password of the client's private key. This can be left blank if the private key is not protected with a password
       auth.keyPassword: secret
       # The client's certificate file
       cert.file: /home/user/ais-client.crt
