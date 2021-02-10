@@ -12,6 +12,9 @@ To start using the Swisscom AIS service and this client library, do the followin
 3. [Configure the AIS client for your use case](docs/configure-the-AIS-client.md)
 4. Use the AIS client, either [programmatically](docs/use-the-AIS-client-programmatically.md) or from the [command line](docs/use-the-AIS-client-via-CLI.md)
 
+Other topics of interest might be:
+* [On PAdES Long Term Validation support](docs/pades-long-term-validation.md)
+
 ## Quick examples
 
 The rest of this page provides some quick examples for using the AIS client. Please see the links
