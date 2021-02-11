@@ -63,7 +63,8 @@ public class PdfDocument {
 
         int accessPermissions = SigUtils.getMDPPermission(pdDocument);
         if (accessPermissions == 1) {
-            throw new AisClientException("No changes to the document are permitted due to DocMDP transform parameters dictionary");
+            throw new AisClientException("Cannot sign document [" + name + "]. Document contains a certification " +
+                                         "that does not allow any changes.");
         }
 
         PDSignature pdSignature = new PDSignature();

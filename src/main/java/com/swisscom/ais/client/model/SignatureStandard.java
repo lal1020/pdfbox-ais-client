@@ -36,7 +36,7 @@ public enum SignatureStandard {
      * library already does this for your). This is in contrast with the PDF option (see above) that embeds the revocation information
      * as an archival attribute inside the CMS content, which might trip some strict checkers (e.g. ETSI Signature Conformance Checker).
      */
-    PADES_BASELINE("PAdES-Baseline"),
+    PADES_BASELINE("PAdES-baseline"),
 
     /**
      * Plain signature, which returns revocation information as optional output.
