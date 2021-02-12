@@ -18,10 +18,11 @@ for PAdES LTV signatures:
 
 * the _SignatureStandard_ element must be set to _PAdES-Baseline_ in order for AIS to correctly process and embed 
   in the signature object the corresponding attributes as defined by the standard
-* the _AddTimestampp_ element must be present, in order for the timestamp to be included in the signature
+* the _AddTimestamp_ element must be present, in order for the timestamp to be included in the signature
 * the _AddRevocationInformation_ element must be present so the validation information is delivered by the service
+  in the Signing Response
 * for CMS signatures (both static and on-demand) the type of the _AddRevocationInformation_ is not necessary, 
-  since it will automatically match the defined signature standard.
+  since it will automatically match the defined signature standard
 
 Here is an example of an AIS Sign Request to trigger a PAdES LTV signature:
 ```json
