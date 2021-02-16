@@ -45,7 +45,7 @@ public class ModelHelper {
         }
 
         ClaimedIdentity claimedIdentity = new ClaimedIdentity();
-        if (userData.getClaimedIdentityKey() != null && userData.getClaimedIdentityKey().length() > 0) {
+        if (signatureMode != SignatureMode.TIMESTAMP && Utils.notEmpty(userData.getClaimedIdentityKey())) {
             claimedIdentity.setName(userData.getClaimedIdentityName() + ":" + userData.getClaimedIdentityKey());
         } else {
             claimedIdentity.setName(userData.getClaimedIdentityName());

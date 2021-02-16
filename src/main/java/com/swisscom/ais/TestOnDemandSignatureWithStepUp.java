@@ -30,8 +30,8 @@ public class TestOnDemandSignatureWithStepUp {
             userData.setFromProperties(properties);
             userData.setConsentUrlCallback((consentUrl, userData1) -> System.out.println("Consent URL: " + consentUrl));
             userData.setAddTimestamp(true);
-            userData.setAddRevocationInformation(RevocationInformation.PADES);
-            userData.setSignatureStandard(SignatureStandard.PADES);
+            userData.setAddRevocationInformation(RevocationInformation.DEFAULT);
+            userData.setSignatureStandard(SignatureStandard.PADES_BASELINE);
 
             PdfHandle document = new PdfHandle();
             document.setInputFromFile(properties.getProperty("local.test.inputFile"));

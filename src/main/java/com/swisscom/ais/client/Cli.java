@@ -3,6 +3,7 @@ package com.swisscom.ais.client;
 import com.swisscom.ais.client.impl.AisClientImpl;
 import com.swisscom.ais.client.model.PdfHandle;
 import com.swisscom.ais.client.model.SignatureResult;
+import com.swisscom.ais.client.model.SignatureStandard;
 import com.swisscom.ais.client.model.UserData;
 import com.swisscom.ais.client.rest.RestClientConfiguration;
 import com.swisscom.ais.client.rest.RestClientImpl;
@@ -35,6 +36,7 @@ public class Cli {
     private static final String PARAM_HELP = "help";
     private static final String PARAM_VERBOSE1 = "v";
     private static final String PARAM_VERBOSE2 = "vv";
+    private static final String PARAM_VERBOSE3 = "vvv";
     private static final String SEPARATOR = "--------------------------------------------------------------------------------";
     private static final String SUFFIX_DEFAULT = "-signed-#time";
 
@@ -48,7 +50,7 @@ public class Cli {
     private static boolean continueExecution;
     private static String startFolder;
 
-    private static List<String> inputFileList = new LinkedList<>();
+    private static final List<String> inputFileList = new LinkedList<>();
     private static String outputFile;
     private static String suffix;
     private static String configFile;
@@ -97,6 +99,9 @@ public class Cli {
                 System.out.println("Consent URL: " + consentUrl);
                 System.out.println(SEPARATOR);
             });
+            if (userData.getSignatureStandard() == null) {
+                userData.setSignatureStandard(SignatureStandard.PADES);
+            }
 
             List<PdfHandle> documentsToSign = new LinkedList<>();
             for (String inputFile : inputFileList) {
@@ -165,13 +170,21 @@ public class Cli {
                     return;
                 }
                 case PARAM_VERBOSE1: {
-                    if (verboseLevel == 0) {
+                    if (verboseLevel < 1) {
                         verboseLevel = 1;
                     }
                     break;
                 }
                 case PARAM_VERBOSE2: {
-                    verboseLevel = 2;
+                    if (verboseLevel < 2) {
+                        verboseLevel = 2;
+                    }
+                    break;
+                }
+                case PARAM_VERBOSE3: {
+                    if (verboseLevel < 3) {
+                        verboseLevel = 3;
+                    }
                     break;
                 }
                 case PARAM_INPUT: {
@@ -299,15 +312,20 @@ public class Cli {
                 setLoggerToLevel(Loggers.PDF_PROCESSING, "debug", loggerContext);
                 break;
             }
-            case 2: {
+            case 2: // falls through
+            case 3: {
                 setLoggerToLevel(ch.qos.logback.classic.Logger.ROOT_LOGGER_NAME, "debug", loggerContext);
-                setLoggerToLevel("org.apache.hc", "debug", loggerContext);
                 setLoggerToLevel(Loggers.CLIENT, "debug", loggerContext);
                 setLoggerToLevel(Loggers.CONFIG, "debug", loggerContext);
                 setLoggerToLevel(Loggers.CLIENT_PROTOCOL, "debug", loggerContext);
                 setLoggerToLevel(Loggers.REQUEST_RESPONSE, "warn", loggerContext);
                 setLoggerToLevel(Loggers.FULL_REQUEST_RESPONSE, "debug", loggerContext);
                 setLoggerToLevel(Loggers.PDF_PROCESSING, "debug", loggerContext);
+                if (verboseLevel == 2) {
+                    setLoggerToLevel("org.apache.hc", "info", loggerContext);
+                } else {
+                    setLoggerToLevel("org.apache.hc", "trace", loggerContext);
+                }
                 break;
             }
             default: {

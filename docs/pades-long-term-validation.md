@@ -50,7 +50,7 @@ Here is an example of an AIS Sign Request to trigger a PAdES LTV signature:
             "sc.CertificateRequest": {
                 ...
             },
-            "sc:SignatureStandard": "PAdES-Baseline"
+            "sc.SignatureStandard": "PAdES-Baseline"
         }
     }
 }

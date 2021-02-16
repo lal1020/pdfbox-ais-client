@@ -48,7 +48,7 @@ public class TestFullyProgrammaticConfiguration {
 
             userData.setStepUpLanguage("en");
             userData.setStepUpMessage("Please confirm the signing of the document");
-            userData.setStepUpMsisdn("0040799999999");
+            userData.setStepUpMsisdn("40799999999");
 
             userData.setSignatureReason("For testing purposes");
             userData.setSignatureLocation("Topeka, Kansas");

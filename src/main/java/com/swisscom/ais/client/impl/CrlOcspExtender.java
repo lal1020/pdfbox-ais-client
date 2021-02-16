@@ -36,27 +36,17 @@ public class CrlOcspExtender {
     private static final Logger logPdfProcessing = LoggerFactory.getLogger(Loggers.PDF_PROCESSING);
 
     private static final String DICTIONARY_DSS = "DSS";
-    private static final String DICTIONARY_VRI = "VRI";
-
     private static final COSName COSNAME_DSS;
-    private static final COSName COSNAME_VRI;
     private static final COSName COSNAME_OCSPS;
-    private static final COSName COSNAME_OCSP_SINGLE;
     private static final COSName COSNAME_CRLS;
-    private static final COSName COSNAME_CRL_SINGLE;
     private static final COSName COSNAME_CERTS;
-    private static final COSName COSNAME_CERT_SINGLE;
     private static final COSName COSNAME_TYPE;
 
     static {
         COSNAME_DSS = COSName.getPDFName("DSS");
-        COSNAME_VRI = COSName.getPDFName("VRI");
         COSNAME_OCSPS = COSName.getPDFName("OCSPs");
-        COSNAME_OCSP_SINGLE = COSName.getPDFName("OCSP");
         COSNAME_CRLS = COSName.getPDFName("CRLs");
-        COSNAME_CRL_SINGLE = COSName.getPDFName("CRL");
         COSNAME_CERTS = COSName.getPDFName("Certs");
-        COSNAME_CERT_SINGLE = COSName.getPDFName("Cert");
         COSNAME_TYPE = COSName.TYPE;
     }
 
@@ -87,23 +77,23 @@ public class CrlOcspExtender {
 
             Map<COSName, ValidationData> validationMap = new HashMap<>();
 
-            // PDSignature lastSignature = getLastRelevantSignature(pdDocument);
-            // TODO in the iText impl, here it iterates over ALL signatures and adds the CRLs and OCSPs to each one of them
-            for (PDSignature pdSignature : pdDocument.getSignatureDictionaries()) {
-                ValidationData vData = new ValidationData();
-                for (byte[] ocsp : encodedOcspEntries) {
-                    vData.ocsps.add(buildOCSPResponse(ocsp));
-                }
-                vData.crls.addAll(encodedCrlEntries);
-                validationMap.put(COSName.getPDFName(getSignatureHashKey(pdSignature)), vData);
+            PDSignature lastSignature = getLastRelevantSignature(pdDocument);
+            if (lastSignature == null) {
+                throw new AisClientException("Cannot extend PDF with CRL and OCSP data. No signature was found in the PDF");
             }
+
+            ValidationData vData = new ValidationData();
+            for (byte[] ocsp : encodedOcspEntries) {
+                vData.ocsps.add(buildOCSPResponse(ocsp));
+            }
+            vData.crls.addAll(encodedCrlEntries);
+            validationMap.put(COSName.getPDFName(getSignatureHashKey(lastSignature)), vData);
 
             // ----------------------------------------------------------------------------------------------------
             COSDictionary pdDssDict = cosDocumentCatalog.getCOSDictionary(COSNAME_DSS);
             COSArray ocsps = null;
             COSArray crls = null;
             COSArray certs = null;
-            COSDictionary pdVriDict;
 
             if (pdDssDict != null) {
                 ocsps = pdDssDict.getCOSArray(COSNAME_OCSPS);
@@ -112,24 +102,11 @@ public class CrlOcspExtender {
                 pdDssDict.removeItem(COSNAME_OCSPS);
                 pdDssDict.removeItem(COSNAME_CRLS);
                 pdDssDict.removeItem(COSNAME_CERTS);
-                pdVriDict = pdDssDict.getCOSDictionary(COSNAME_VRI);
-                if (pdVriDict != null) {
-                    for (COSName vriKeyName : pdVriDict.keySet()) {
-                        if (validationMap.containsKey(vriKeyName)) {
-                            COSDictionary vriSubDictionary = pdVriDict.getCOSDictionary(vriKeyName);
-                            if (vriSubDictionary != null) {
-                                deleteVriReferences(ocsps, vriSubDictionary.getCOSArray(COSNAME_OCSP_SINGLE));
-                                deleteVriReferences(crls, vriSubDictionary.getCOSArray(COSNAME_CRL_SINGLE));
-                                deleteVriReferences(certs, vriSubDictionary.getCOSArray(COSNAME_CERT_SINGLE));
-                            }
-                        }
-                    }
-                }
             }
-            pdDssDict = (pdDssDict != null) ? pdDssDict : createDictionary(DICTIONARY_DSS);
-            ocsps = (ocsps != null) ? ocsps : createArray(null, cosDocument);
-            crls = (crls != null) ? crls : createArray(null, cosDocument);
-            certs = (certs != null) ? certs : createArray(null, cosDocument);
+            pdDssDict = (pdDssDict != null) ? pdDssDict : createDssDictionary();
+            ocsps = (ocsps != null) ? ocsps : createArray();
+            crls = (crls != null) ? crls : createArray();
+            certs = (certs != null) ? certs : createArray();
 
             for (Map.Entry<COSName, ValidationData> validationEntry : validationMap.entrySet()) {
                 ValidationData validationData = validationEntry.getValue();
@@ -160,26 +137,6 @@ public class CrlOcspExtender {
             cosDocumentCatalog.setItem(COSNAME_DSS, pdDssDict);
         } catch (Exception e) {
             throw new AisClientException("An error occurred processing the signature and embedding CRL and OCSP data", e);
-        }
-    }
-
-    private static void deleteVriReferences(COSArray allEntries, COSArray toDeleteEntries) {
-        if (allEntries == null || toDeleteEntries == null) {
-            return;
-        }
-        for (Iterator<COSBase> toDeleteIterator = toDeleteEntries.iterator(); toDeleteIterator.hasNext(); ) {
-            COSBase toDeleteEntry = toDeleteIterator.next();
-            if (toDeleteEntry.isDirect()) {
-                continue;
-            }
-
-            for (Iterator<COSBase> allIterator = allEntries.iterator(); allIterator.hasNext(); ) {
-                COSBase allEntry = allIterator.next();
-                if (allEntry.isDirect()) {
-                    continue;
-                }
-                // TODO
-            }
         }
     }
 
@@ -268,30 +225,21 @@ public class CrlOcspExtender {
 
     }
 
-    public COSDictionary createDictionary(String name) {
+    private COSDictionary createDssDictionary() {
         COSDictionary dictionary = new COSDictionary();
         dictionary.setNeedToBeUpdated(true);
-        if (name != null) {
-            dictionary.setName(COSNAME_TYPE, name);
-        }
+        dictionary.setName(COSNAME_TYPE, DICTIONARY_DSS);
         dictionary.setDirect(true);
         return dictionary;
     }
 
-    public COSArray createArray(Iterable<byte[]> datas, COSDocument cosDocument) throws IOException {
+    private COSArray createArray() {
         COSArray array = new COSArray();
         array.setNeedToBeUpdated(true);
-
-        if (datas != null) {
-            for (byte[] data : datas) {
-                array.add(createStream(data, cosDocument));
-            }
-        }
-
         return array;
     }
 
-    public COSStream createStream(byte[] data, COSDocument cosDocument) throws IOException {
+    private COSStream createStream(byte[] data, COSDocument cosDocument) throws IOException {
         COSStream stream = cosDocument.createCOSStream();
         stream.setNeedToBeUpdated(true);
         try (OutputStream unfilteredStream = stream.createOutputStream(COSName.FLATE_DECODE)) {
@@ -301,12 +249,11 @@ public class CrlOcspExtender {
         return stream;
     }
 
-    // TODO
-    private static byte[] buildOCSPResponse(byte[] BasicOCSPResponse) throws IOException {
-        DEROctetString doctet = new DEROctetString(BasicOCSPResponse);
+    private byte[] buildOCSPResponse(byte[] content) throws IOException {
+        DEROctetString derOctet = new DEROctetString(content);
         ASN1EncodableVector v2 = new ASN1EncodableVector();
         v2.add(OCSPObjectIdentifiers.id_pkix_ocsp_basic);
-        v2.add(doctet);
+        v2.add(derOctet);
         ASN1Enumerated den = new ASN1Enumerated(0);
         ASN1EncodableVector v3 = new ASN1EncodableVector();
         v3.add(den);
@@ -316,7 +263,6 @@ public class CrlOcspExtender {
     }
 
     private String getSignatureHashKey(PDSignature signature) throws NoSuchAlgorithmException, IOException {
-        // TODO
         byte[] contentToConvert = signature.getContents(documentBytes);
         if (SignatureType.TIMESTAMP.getUri().equals(signature.getSubFilter())) {
             ASN1InputStream din = new ASN1InputStream(new ByteArrayInputStream(contentToConvert));

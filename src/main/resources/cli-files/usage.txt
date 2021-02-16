@@ -25,7 +25,9 @@ Options:
 
     -v                                                  - Be verbose about what is going on (sets Logback config to info)
 
-    -vv                                                 - Be EXTRA verbose about what is going on (sets Logback config to debug)
+    -vv                                                 - Be EXTRA verbose about what is going on (sets Logback config to debug, without HTTP and TLS traffic)
+
+    -vvv                                                - Be EXTRA-EXTRA verbose about what is going on (sets Logback config to debug, with HTTP and TLS traffic)
 
 Use cases:
     1. > ./bin/ais-client.sh -init   => Have the config files generated for you in the current folder
