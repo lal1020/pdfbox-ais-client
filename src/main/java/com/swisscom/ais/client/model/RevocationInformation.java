@@ -18,7 +18,7 @@ public enum RevocationInformation {
      * Encode revocation information in CMS compliant to CAdES.
      * RI will be embedded as an unsigned attribute with OID 1.2.840.113549.1.9.16.2.24.
      */
-    CADES("CAdES"),
+    CADES("CADES"),
 
     /**
      * PDF (formerly named PAdES): CMS Signatures: RI will be embedded in the signature as a signed attribute
@@ -36,7 +36,7 @@ public enum RevocationInformation {
      * @deprecated Please use the {@link #PDF} element.
      */
     @Deprecated
-    PADES("PAdES"),
+    PADES("PADES"),
 
     /**
      * Add optional output with revocation information, to be used by clients to create PAdES-compliant signatures.
@@ -44,7 +44,7 @@ public enum RevocationInformation {
      * library already does this for your). This is in contrast with the PDF option (see above) that embeds the revocation information
      * as an archival attribute inside the CMS content, which might trip some strict checkers (e.g. ETSI Signature Conformance Checker).
      */
-    PADES_BASELINE("PAdES-baseline"),
+    PADES_BASELINE("PADES-baseline"),
 
     /**
      * Both RI types (CAdES and PDF) will be provided (for backward compatibility).

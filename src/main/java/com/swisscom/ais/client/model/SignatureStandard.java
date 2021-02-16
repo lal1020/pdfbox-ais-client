@@ -12,7 +12,7 @@ public enum SignatureStandard {
     /**
      * CAdES compliant signature.
      */
-    CADES("CAdES"),
+    CADES("CADES"),
 
     /**
      * Formerly named PAdES: Adds to the CMS a revocation info archival attribute as described in the PDF reference.
@@ -28,7 +28,7 @@ public enum SignatureStandard {
      * @deprecated Please use the {@link #PDF} element.
      */
     @Deprecated
-    PADES("PAdES"),
+    PADES("PADES"),
 
     /**
      * PAdES compliant signature, which returns the revocation information as optional output.
@@ -36,7 +36,7 @@ public enum SignatureStandard {
      * library already does this for your). This is in contrast with the PDF option (see above) that embeds the revocation information
      * as an archival attribute inside the CMS content, which might trip some strict checkers (e.g. ETSI Signature Conformance Checker).
      */
-    PADES_BASELINE("PAdES-baseline"),
+    PADES_BASELINE("PADES-baseline"),
 
     /**
      * Plain signature, which returns revocation information as optional output.

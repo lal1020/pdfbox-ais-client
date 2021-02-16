@@ -70,6 +70,7 @@ public class RestClientImpl implements RestClient {
         Security.addProvider(new BouncyCastleProvider());
         jacksonMapper = new ObjectMapper();
         jacksonMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        jacksonMapper.configure(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY, true);
         jacksonMapper.setSerializationInclusion(JsonInclude.Include.USE_DEFAULTS);
 
         SSLConnectionSocketFactory sslConnectionSocketFactory;

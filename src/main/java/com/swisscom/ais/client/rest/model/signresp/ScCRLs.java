@@ -1,6 +1,8 @@
 
 package com.swisscom.ais.client.rest.model.signresp;
 
+import java.util.ArrayList;
+import java.util.List;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
@@ -12,19 +14,19 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 public class ScCRLs {
 
     @JsonProperty("sc.CRL")
-    private String scCRL;
+    private List<String> scCRL = new ArrayList<String>();
 
     @JsonProperty("sc.CRL")
-    public String getScCRL() {
+    public List<String> getScCRL() {
         return scCRL;
     }
 
     @JsonProperty("sc.CRL")
-    public void setScCRL(String scCRL) {
+    public void setScCRL(List<String> scCRL) {
         this.scCRL = scCRL;
     }
 
-    public ScCRLs withScCRL(String scCRL) {
+    public ScCRLs withScCRL(List<String> scCRL) {
         this.scCRL = scCRL;
         return this;
     }

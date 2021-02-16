@@ -67,9 +67,9 @@ public class ResponseHelper {
             response.getSignResponse().getOptionalOutputs().getScRevocationInformation() != null &&
             response.getSignResponse().getOptionalOutputs().getScRevocationInformation().getScCRLs() != null) {
 
-            String crl = response.getSignResponse().getOptionalOutputs().getScRevocationInformation().getScCRLs().getScCRL();
-            if (crl != null) {
-                result.add(crl);
+            List<String> crlList = response.getSignResponse().getOptionalOutputs().getScRevocationInformation().getScCRLs().getScCRL();
+            if (crlList != null) {
+                result.addAll(crlList);
             }
         }
         return result;
@@ -83,9 +83,9 @@ public class ResponseHelper {
             response.getSignResponse().getOptionalOutputs().getScRevocationInformation() != null &&
             response.getSignResponse().getOptionalOutputs().getScRevocationInformation().getScOCSPs() != null) {
 
-            String ocsp = response.getSignResponse().getOptionalOutputs().getScRevocationInformation().getScOCSPs().getScOCSP();
-            if (ocsp != null) {
-                result.add(ocsp);
+            List<String> ocspList = response.getSignResponse().getOptionalOutputs().getScRevocationInformation().getScOCSPs().getScOCSP();
+            if (ocspList != null) {
+                result.addAll(ocspList);
             }
         }
         return result;

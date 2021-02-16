@@ -38,7 +38,7 @@
             "sc.AddRevocationInformation": {
                 "@Type": "PAdES"
             },
-            "sc:SignatureStandard": "PAdES",
+            "sc.SignatureStandard": "PAdES",
             "sc.CertificateRequest": {
                 "sc.DistinguishedName": "cn=TEST User, givenname=Max, surname=Maximus, c=US, serialnumber=abcdefabcdefabcdefabcdefabcdef",
                 "sc.StepUpAuthorisation": {

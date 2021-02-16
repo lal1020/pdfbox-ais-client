@@ -14,7 +14,7 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
     "ClaimedIdentity",
     "SignatureType",
     "sc.AddRevocationInformation",
-    "sc:SignatureStandard",
+    "sc.SignatureStandard",
     "sc.CertificateRequest"
 })
 public class OptionalInputs {
@@ -29,7 +29,7 @@ public class OptionalInputs {
     private String signatureType;
     @JsonProperty("sc.AddRevocationInformation")
     private ScAddRevocationInformation scAddRevocationInformation;
-    @JsonProperty("sc:SignatureStandard")
+    @JsonProperty("sc.SignatureStandard")
     private String scSignatureStandard;
     @JsonProperty("sc.CertificateRequest")
     private ScCertificateRequest scCertificateRequest;
@@ -109,12 +109,12 @@ public class OptionalInputs {
         return this;
     }
 
-    @JsonProperty("sc:SignatureStandard")
+    @JsonProperty("sc.SignatureStandard")
     public String getScSignatureStandard() {
         return scSignatureStandard;
     }
 
-    @JsonProperty("sc:SignatureStandard")
+    @JsonProperty("sc.SignatureStandard")
     public void setScSignatureStandard(String scSignatureStandard) {
         this.scSignatureStandard = scSignatureStandard;
     }

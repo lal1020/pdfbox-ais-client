@@ -29,13 +29,14 @@ public class TestOnDemandSignatureWithStepUp {
             UserData userData = new UserData();
             userData.setFromProperties(properties);
             userData.setConsentUrlCallback((consentUrl, userData1) -> System.out.println("Consent URL: " + consentUrl));
-            userData.setAddRevocationInformation(RevocationInformation.BOTH);
-            userData.setSignatureStandard(SignatureStandard.PADES_BASELINE);
+            userData.setAddTimestamp(true);
+            userData.setAddRevocationInformation(RevocationInformation.PADES);
+            userData.setSignatureStandard(SignatureStandard.PADES);
 
             PdfHandle document = new PdfHandle();
             document.setInputFromFile(properties.getProperty("local.test.inputFile"));
             document.setOutputToFile(properties.getProperty("local.test.outputFilePrefix") + System.currentTimeMillis() + ".pdf");
-            document.setDigestAlgorithm(DigestAlgorithm.SHA256);
+            document.setDigestAlgorithm(DigestAlgorithm.SHA512);
 
             SignatureResult result = aisClient.signWithOnDemandCertificateAndStepUp(Collections.singletonList(document), userData);
             System.out.println("Final result: " + result);

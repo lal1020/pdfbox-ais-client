@@ -1,6 +1,8 @@
 
 package com.swisscom.ais.client.rest.model.signresp;
 
+import java.util.ArrayList;
+import java.util.List;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
@@ -12,19 +14,19 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 public class ScOCSPs {
 
     @JsonProperty("sc.OCSP")
-    private String scOCSP;
+    private List<String> scOCSP = new ArrayList<String>();
 
     @JsonProperty("sc.OCSP")
-    public String getScOCSP() {
+    public List<String> getScOCSP() {
         return scOCSP;
     }
 
     @JsonProperty("sc.OCSP")
-    public void setScOCSP(String scOCSP) {
+    public void setScOCSP(List<String> scOCSP) {
         this.scOCSP = scOCSP;
     }
 
-    public ScOCSPs withScOCSP(String scOCSP) {
+    public ScOCSPs withScOCSP(List<String> scOCSP) {
         this.scOCSP = scOCSP;
         return this;
     }
