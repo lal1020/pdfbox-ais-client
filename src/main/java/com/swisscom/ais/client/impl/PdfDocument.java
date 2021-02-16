@@ -19,12 +19,8 @@ import org.apache.pdfbox.pdmodel.interactive.digitalsignature.PDSeedValueMDP;
 import org.apache.pdfbox.pdmodel.interactive.digitalsignature.PDSignature;
 import org.apache.pdfbox.pdmodel.interactive.digitalsignature.SignatureOptions;
 import org.apache.pdfbox.pdmodel.interactive.form.PDSignatureField;
-import org.bouncycastle.asn1.cms.ContentInfo;
-import org.bouncycastle.cms.CMSSignedData;
-import org.bouncycastle.openssl.jcajce.JcaPEMWriter;
 
 import java.io.ByteArrayOutputStream;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -111,12 +107,6 @@ public class PdfDocument {
 
     public void finishSignature(byte[] signatureContent, List<byte[]> crlEntries, List<byte[]> ocspEntries) {
         try {
-            CMSSignedData signedData = new CMSSignedData(signatureContent);
-            ContentInfo cmsSignedDataAsASN1 = signedData.toASN1Structure();
-            try (JcaPEMWriter writer = new JcaPEMWriter(new FileWriter("D:/rest_signature.txt"))) {
-                writer.writeObject(cmsSignedDataAsASN1);
-            }
-
             pbSigningSupport.setSignature(signatureContent);
             pdDocument.close();
             contentIn.close();
