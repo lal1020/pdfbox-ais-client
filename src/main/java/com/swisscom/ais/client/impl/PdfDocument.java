@@ -71,7 +71,11 @@ public class PdfDocument {
         Calendar signDate = Calendar.getInstance();
 
         if (signatureType == SignatureType.TIMESTAMP) {
-            pdSignature.setType(COSName.DOC_TIME_STAMP);
+            // Now, according to ETSI TS 102 778-4, annex A.2, the type of a Dictionary that holds document timestamp should be DocTimeStamp
+            // However, adding this (as of Feb/17/2021), it trips the ETSI Conformance Checked online tool, making it say
+            // "There is no signature dictionary in the document". So, for now (Feb/17/2021) this has been removed. This makes the
+            // ETSI Conformance Checker happy.
+            // pdSignature.setType(COSName.DOC_TIME_STAMP);
             pdSignature.setFilter(PDSignature.FILTER_ADOBE_PPKLITE);
             pdSignature.setSubFilter(COSName.getPDFName("ETSI.RFC3161"));
         } else {
