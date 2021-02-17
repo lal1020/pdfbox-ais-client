@@ -107,23 +107,6 @@ public class Utils {
         }
     }
 
-    public static void copyFileFromClasspathToStdout(String inputFile) {
-        try {
-            InputStream is = Cli.class.getResourceAsStream(inputFile);
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            byte[] buffer = new byte[1024];
-            int bytesRead;
-            while ((bytesRead = is.read(buffer)) > 0) {
-                baos.write(buffer, 0, bytesRead);
-            }
-            is.close();
-            baos.close();
-            System.out.println(new String(baos.toByteArray(), StandardCharsets.UTF_8));
-        } catch (IOException e) {
-            throw new AisClientException("Failed to copy file: [" + inputFile + "] to STDOUT");
-        }
-    }
-
     public static byte[] hashBytesWithSha1(byte[] b) throws NoSuchAlgorithmException {
         MessageDigest sh = MessageDigest.getInstance("SHA1");
         return sh.digest(b);

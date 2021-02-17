@@ -102,9 +102,9 @@ public class RestClientImpl implements RestClient {
 
     @Override
     public void close() throws IOException {
-        logClient.info("Closing the REST client");
+        logClient.debug("Closing the REST client");
         if (httpClient != null) {
-            logClient.info("Closing the embedded HTTP client");
+            logClient.debug("Closing the embedded HTTP client");
             httpClient.close();
         }
     }

@@ -1,6 +1,7 @@
 package com.swisscom.ais.client;
 
 import com.swisscom.ais.client.impl.AisClientImpl;
+import com.swisscom.ais.client.impl.ClientVersionProvider;
 import com.swisscom.ais.client.model.PdfHandle;
 import com.swisscom.ais.client.model.SignatureResult;
 import com.swisscom.ais.client.model.SignatureStandard;
@@ -47,6 +48,7 @@ public class Cli {
 
     // ----------------------------------------------------------------------------------------------------
 
+    private static ClientVersionProvider versionProvider;
     private static boolean continueExecution;
     private static String startFolder;
 
@@ -58,6 +60,8 @@ public class Cli {
     private static int verboseLevel;
 
     public static void main(String[] args) throws IOException {
+        versionProvider = new ClientVersionProvider();
+        versionProvider.init();
         startFolder = new File("").getAbsolutePath();
 
         parseArguments(args);
@@ -68,7 +72,11 @@ public class Cli {
         configureLogback();
 
         System.out.println(SEPARATOR);
-        System.out.println("Swisscom AIS Client - Command line interface");
+        if (versionProvider.isVersionInfoAvailable()) {
+            System.out.println("Swisscom AIS Client - " + versionProvider.getVersionInfo());
+        } else {
+            System.out.println("Swisscom AIS Client");
+        }
         System.out.println(SEPARATOR);
         System.out.println("Starting with following parameters:");
         System.out.println("Config            : " + configFile);
@@ -265,7 +273,11 @@ public class Cli {
         if (argsValidationError != null) {
             System.out.println(argsValidationError);
         }
-        Utils.copyFileFromClasspathToStdout("/cli-files/usage.txt");
+        String usageText = Utils.copyFileFromClasspathToString("/cli-files/usage.txt");
+        if (versionProvider.isVersionInfoAvailable()) {
+            usageText = usageText.replace("${versionInfo}", "- " + versionProvider.getVersionInfo());
+        }
+        System.out.println(usageText);
     }
 
     private static void runInit() {

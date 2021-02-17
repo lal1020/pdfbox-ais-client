@@ -1,5 +1,5 @@
 --------------------------------------------------------------------------------
-Swisscom AIS Client - Command line interface
+Swisscom AIS Client ${versionInfo}
 --------------------------------------------------------------------------------
 Usage: ./bin/ais-client.sh [OPTIONS]
 
