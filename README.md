@@ -61,7 +61,7 @@ More than one file can be signed/timestamped at once:
 
 You don't have to specify the output file:
 ```shell
-./bin/ais-client.sh -type ondemand-stepup -input doc1.pdf -type ondemand-stepup
+./bin/ais-client.sh -type ondemand-stepup -input doc1.pdf
 ```
 The output file name is composed from the input file name plus a configurable _suffix_ (by default it is "-signed-#time", where _#time_
 is replaced at runtime with the current date and time). You can customize this suffix:
