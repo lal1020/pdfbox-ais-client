@@ -1,4 +1,4 @@
-# This page contains questions and answers related to AIS, RA, MobileID, billing, etc.
+# Questions & answers related to AIS, RA, MobileID, Billing, etc.
 
 **1.	Die Firma X will jetzt von AIS Preprod auf die AIS Prod umstellen da sie mit dem Testen fertig sind. Kannst du mir bitte sagen 
 von vertraglichen her welche Schritte die Firma X machen muss und wie das im Allgemeinen abläuft, was muss da unterschrieben werden, etc.?**
