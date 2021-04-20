@@ -9,8 +9,7 @@ for Electronic Signatures.
   the Validation Data is not available online anymore
 
 ## AIS client support for PAdES LTV
-For the moment, this AIS client library is not yet ready to support PAdES LTV signatures. We are working on this and
-expect full support in the close future.
+In the meantime the AIS Client supports PAdES LTV.
 
 ## How to issue PAdES LTV signatures with Swisscom's All-In Signing Service 
 When using the Swisscom AIS service directly, via the exposed REST API, the following steps must be taken to ensure support
