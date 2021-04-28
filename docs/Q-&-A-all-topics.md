@@ -31,7 +31,7 @@ will genau wissen wann kosten auf sie zukommen.**
 
 **5.	Please check in the Postman samples that : is replaced with .**
  
-* For example if you have in the Postman Sample: "sc:SignatureStandard" replace it with "sc:SignatureStandard".
+* For example if you have in the Postman Sample: "sc:SignatureStandard" replace it with "sc.SignatureStandard".
  
  
 **6.	Bei einen Template basierten Call muss immer ein Benutzer Name angegeben werde oder kann man da auch einen Namen Place holder benutzen? Ist es dann später
@@ -59,3 +59,12 @@ Wie funktioniert das zurzeit?**
 Wie ist es im AIS zurzeit implementiert? Eine kurze Beschreibung würde mir da viel weiter helfen.**
  
 * Für die Signatur wählt der Client einen On-demand Service. Dieser verweist auf einen CA-Server. Der Level of Assurance und die Jurisdiktion für die Signatur wird aus dem Namen dieses CA-Servers abgeleitet. Wie, das ist unter anderem im Admin UI User Manual, Abschnitt 3.4.1 beschrieben. Die "Data Flow Issues" aktuel im bearbeitung bei uns, wollen genau das ändern, so dass diese Eigenschaften nicht mehr per Namenskonvention festgelegt sind, sondern explizit in der Datenbank landen. Nach der vorherigen Aussage zufolge kann man nicht EIDAS oder ZertES auswählen, wird dann sicherlich später einstellbar sein.
+
+**10. POC Durchführung, auf was muss ich achten?
+
+* Ich muss eine Video Registrierung durchführen, dadurch kann ich nur in der EU signieren. 
+* Das wird hier durchgeführt. 
+* https://trustservices.swisscom.com/en/smart-registration-service/
+* Ich muss mich im Swisscom Shop registrieren lassen, dadurch kann ich dann auch in der Schweiz signieren. 
+
+
