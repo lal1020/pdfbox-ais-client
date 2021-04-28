@@ -11,7 +11,7 @@ From a contractual point of view, which steps company X has to take and how it w
  
 ** 2. Billing models for the MobileID / AIS user: how does it work? Which models are there? How is the signature flat rate used? Can
 Does the user continue to use the flat rate after signing X times (e.g. 3 times)? What are the general conditions regarding posting costs,
-how does that work specifically? **
+how does that work specifically?**
 
 * The customer chooses the billing variant in the corresponding contract, but the option of billing per user / month is only available to resellers or when ordering via partners, for end customers there is only "per signature". You can find all contract templates in DMIS:
 * https://internal.bizdocs.swisscom.com/dmis/start/SitePages/ProductDetail.aspx?PURL=https://internal.bizdocs.swisscom.com/dmis/1000255-All-in-Signing-Service
