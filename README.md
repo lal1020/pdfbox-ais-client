@@ -8,7 +8,7 @@ It relies on the [Apache PDFBox](https://pdfbox.apache.org/) library for PDF pro
 
 * https://swisscom-my.sharepoint.com/:v:/p/mike_sauerer/EWG7R_eMLh5Fk-zfgpmkYpwBzw91gfNLOrnTi01XBhNJ_A?e=iCKZUi
 
-or, raw video file download, you need to download the video file first.
+or alternativelly if you cannot access the first link, you need to download the raw video file using the following link.
 
 * https://github.com/SwisscomTrustServices/pdfbox-ais/blob/main/Demo_Video_PDFBox%20client%20vs.%20old%20iText%20Client.mp4
 
