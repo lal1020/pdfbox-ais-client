@@ -16,7 +16,7 @@ or alternativelly if you cannot access the first link, you need to download the 
 
 To start using the Swisscom AIS service and this client library, do the following:
 
-1. Read the most frequent asked question when doing a POC. https://github.com/SwisscomTrustServices/pdfbox-ais/blob/main/docs/Q-&-A-all-topics-English.md
+1. Read the most frequent asked question when doing a POC. https://github.com/SwisscomTrustServices/AIS-Postman-Samples/blob/main/docs/Q-%26-A-all-topics-English.md
 3. [Get authentication details to use with the AIS client](docs/get-authentication-details.md).   
 4. [Build or download the AIS client binary package](docs/build-or-download.md)
 5. [Configure the AIS client for your use case](docs/configure-the-AIS-client.md)
