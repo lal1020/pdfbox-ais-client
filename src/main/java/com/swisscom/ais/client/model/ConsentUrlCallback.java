@@ -15,6 +15,12 @@
  */
 package com.swisscom.ais.client.model;
 
+/**
+ * Implementations of this interface can be passed to {@link com.swisscom.ais.client.AisClient} via a {@link UserData} instance to
+ * define the handling mechanism for Step Up consent URLs. The passed in parameters allow for identifying the exact transaction for
+ * which this URL needs to be accessed by the end user.
+ */
+@FunctionalInterface
 public interface ConsentUrlCallback {
 
     void onConsentUrlReceived(String consentUrl, UserData userData);

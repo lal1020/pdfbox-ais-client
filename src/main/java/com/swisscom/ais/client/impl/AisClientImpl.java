@@ -27,6 +27,7 @@ import com.swisscom.ais.client.rest.model.*;
 import com.swisscom.ais.client.rest.model.pendingreq.AISPendingRequest;
 import com.swisscom.ais.client.rest.model.signreq.AISSignRequest;
 import com.swisscom.ais.client.rest.model.signresp.AISSignResponse;
+import com.swisscom.ais.client.rest.model.signresp.ResultMessage;
 import com.swisscom.ais.client.rest.model.signresp.ScExtendedSignatureObject;
 import com.swisscom.ais.client.utils.Loggers;
 import com.swisscom.ais.client.utils.Trace;
@@ -48,6 +49,7 @@ public class AisClientImpl implements AisClient {
 
     private static final Logger logClient = LoggerFactory.getLogger(Loggers.CLIENT);
     private static final Logger logProtocol = LoggerFactory.getLogger(Loggers.CLIENT_PROTOCOL);
+    private static final String MISSING_MSISDN_MESSAGE = "<MSISDN> is missing";
 
     private RestClient restClient;
     private AisClientConfiguration configuration = new AisClientConfiguration();
@@ -320,6 +322,7 @@ public class AisClientImpl implements AisClient {
                 case PENDING: {
                     return SignatureResult.USER_TIMEOUT;
                 }
+                case REQUESTER_ERROR: // falls through
                 case SUBSYSTEM_ERROR: {
                     if (minorCode != null) {
                         switch (minorCode) {
@@ -329,6 +332,18 @@ public class AisClientImpl implements AisClient {
                                 return SignatureResult.USER_TIMEOUT;
                             case STEPUP_CANCEL:
                                 return SignatureResult.USER_CANCEL;
+                            case INSUFFICIENT_DATA:
+                                if (response.getSignResponse().getResult().getResultMessage() != null) {
+                                    ResultMessage resultMessage = response.getSignResponse().getResult().getResultMessage();
+                                    if (resultMessage.get$() != null && resultMessage.get$().contains(MISSING_MSISDN_MESSAGE)) {
+                                        logClient.error(
+                                            "The required MSISDN parameter was missing in the request. This can happen sometimes in the context of the"
+                                            + " on-demand flow, depending on the user's server configuration. As an alternative, the on-demand with"
+                                            + " step-up flow can be used instead.");
+                                        return SignatureResult.INSUFFICIENT_DATA_WITH_ABSENT_MSISDN;
+                                    }
+                                }
+                                break;
                             case SERVICE_ERROR:
                                 if (response.getSignResponse().getResult().getResultMessage() != null) {
                                     ResultMessageCode messageCode = ResultMessageCode.getByUri(
