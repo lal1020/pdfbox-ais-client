@@ -19,6 +19,7 @@ import com.swisscom.ais.client.AisClientException;
 import com.swisscom.ais.client.model.UserData;
 import com.swisscom.ais.client.rest.model.DigestAlgorithm;
 import com.swisscom.ais.client.rest.model.SignatureType;
+import com.swisscom.ais.client.utils.Loggers;
 import com.swisscom.ais.client.utils.Trace;
 import com.swisscom.ais.client.utils.Utils;
 
@@ -34,8 +35,11 @@ import org.apache.pdfbox.pdmodel.interactive.digitalsignature.PDSeedValueMDP;
 import org.apache.pdfbox.pdmodel.interactive.digitalsignature.PDSignature;
 import org.apache.pdfbox.pdmodel.interactive.digitalsignature.SignatureOptions;
 import org.apache.pdfbox.pdmodel.interactive.form.PDSignatureField;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayOutputStream;
+import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -44,8 +48,11 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
 import java.util.Calendar;
 import java.util.List;
+import java.util.Objects;
 
-public class PdfDocument {
+public class PdfDocument implements Closeable {
+
+    private static final Logger logProcessing = LoggerFactory.getLogger(Loggers.PDF_PROCESSING);
 
     private final InputStream contentIn;
     private final OutputStream contentOut;
@@ -127,9 +134,9 @@ public class PdfDocument {
     public void finishSignature(byte[] signatureContent, List<byte[]> crlEntries, List<byte[]> ocspEntries) {
         try {
             pbSigningSupport.setSignature(signatureContent);
-            pdDocument.close();
-            contentIn.close();
-            inMemoryStream.close();
+            closeResource(pdDocument);
+            closeResource(contentIn);
+            closeResource(inMemoryStream);
 
             byte[] documentBytes = inMemoryStream.toByteArray();
 
@@ -140,14 +147,22 @@ public class PdfDocument {
                 metadata.extendPdfWithCrlAndOcsp(crlEntries, ocspEntries);
 
                 pdDocument.saveIncremental(contentOut);
-                pdDocument.close();
+                closeResource(pdDocument);
             } else {
                 contentOut.write(inMemoryStream.toByteArray());
             }
-            contentOut.close();
+            closeResource(contentOut);
         } catch (Exception e) {
             throw new AisClientException("Failed to embed the signature(s) in the document(s) and close the streams - " + trace.getId(), e);
         }
+    }
+
+    @Override
+    public void close() {
+        closeResource(pdDocument);
+        closeResource(contentIn);
+        closeResource(inMemoryStream);
+        closeResource(contentOut);
     }
 
     // ----------------------------------------------------------------------------------------------------
@@ -231,6 +246,18 @@ public class PdfDocument {
 
     public DigestAlgorithm getDigestAlgorithm() {
         return digestAlgorithm;
+    }
+
+    // ----------------------------------------------------------------------------------------------------
+
+    private void closeResource(Closeable resource) {
+        try {
+            if (Objects.nonNull(resource)) {
+                resource.close();
+            }
+        } catch (IOException e) {
+            logProcessing.warn("Failed to close a resource - {}", trace.getId(), e);
+        }
     }
 
 }
