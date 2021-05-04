@@ -84,7 +84,7 @@ public class AisClientImpl implements AisClient {
             return selectASignatureResultForResponse(signResponse, trace);
         }
         // finish the signing
-        finishDocumentsSigning(documentsToSign, signResponse, SignatureMode.STATIC, trace);
+        finishDocumentsSigning(documentsToSign, signResponse, signatureMode, trace);
         return SignatureResult.SUCCESS;
     }
 
@@ -119,7 +119,7 @@ public class AisClientImpl implements AisClient {
             return selectASignatureResultForResponse(signResponse, trace);
         }
         // finish the signing
-        finishDocumentsSigning(documentsToSign, signResponse, SignatureMode.ON_DEMAND, trace);
+        finishDocumentsSigning(documentsToSign, signResponse, signatureMode, trace);
         return SignatureResult.SUCCESS;
     }
 
@@ -160,7 +160,7 @@ public class AisClientImpl implements AisClient {
             return selectASignatureResultForResponse(signResponse, trace);
         }
         // finish the signing
-        finishDocumentsSigning(documentsToSign, signResponse, SignatureMode.ON_DEMAND, trace);
+        finishDocumentsSigning(documentsToSign, signResponse, signatureMode, trace);
         return SignatureResult.SUCCESS;
     }
 
@@ -192,7 +192,7 @@ public class AisClientImpl implements AisClient {
             return selectASignatureResultForResponse(signResponse, trace);
         }
         // finish the signing
-        finishDocumentsSigning(documentsToSign, signResponse, SignatureMode.TIMESTAMP, trace);
+        finishDocumentsSigning(documentsToSign, signResponse, signatureMode, trace);
         return SignatureResult.SUCCESS;
     }
 

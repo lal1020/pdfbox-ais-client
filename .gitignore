@@ -37,3 +37,5 @@ gen-material/gen
 
 local-*.*
 config.properties
+
+src/main/java/com/swisscom/ais/LocalTestOnDemandSignatureWithStepUp.java
