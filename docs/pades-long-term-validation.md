@@ -9,7 +9,8 @@ for Electronic Signatures.
   the Validation Data is not available online anymore
 
 ## AIS client support for PAdES LTV
-In the meantime the AIS Client supports PAdES LTV.
+The PDFBox AIS client fully supports the PAdES LTV standard. It is able to produce PDFs with various signing qualities: 
+PAdES LTV B, B-T and B-LT. 
 
 ## How to issue PAdES LTV signatures with Swisscom's All-In Signing Service 
 When using the Swisscom AIS service directly, via the exposed REST API, the following steps must be taken to ensure support
