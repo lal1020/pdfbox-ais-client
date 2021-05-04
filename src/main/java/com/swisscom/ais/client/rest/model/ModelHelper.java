@@ -66,6 +66,7 @@ public class ModelHelper {
             phone.setScLanguage(userData.getStepUpLanguage());
             phone.setScMSISDN(userData.getStepUpMsisdn());
             phone.setScMessage(userData.getStepUpMessage());
+            phone.setScSerialNumber(userData.getStepUpSerialNumber());
 
             ScStepUpAuthorisation stepUpAuthorisation = new ScStepUpAuthorisation();
             stepUpAuthorisation.setScPhone(phone);
