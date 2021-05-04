@@ -13,8 +13,8 @@ Maven will build the final packages and install them in your repository. You can
 where you run the above command. There are 2 packages that are built:
 
 - the _target/pdfbox-ais-X.X.X.jar_, which contains the binary files of the AIS client, without any of the dependencies
-- the _target/appassembler_, which is a folder containing the AIS client in a standalone form, together with all the dependencies (the 
-  _lib_ folder) and the Unix and Windows scripts needed to run it. 
+- the _target/release_, which is a folder containing the AIS client in a standalone form, together with all the dependencies (the 
+  _libs_ folder) and the Unix and Windows scripts needed to run it. 
 
 ## Download the client
 The AIS client library can also be downloaded directly, without having to build it yourself. Just head over to the _Releases_ section of
