@@ -74,143 +74,53 @@ public class AisClientImpl implements AisClient {
 
     @Override
     public SignatureResult signWithStaticCertificate(List<PdfHandle> documentHandles, UserData userData) {
-        SignatureMode signatureMode = SignatureMode.STATIC;
-        Trace trace = new Trace(userData.getTransactionId());
-        userData.validateYourself(signatureMode, trace);
-        documentHandles.forEach(handle -> handle.validateYourself(trace));
-        // prepare documents
-        List<PdfDocument> documentsToSign = prepareMultipleDocumentsForSigning(documentHandles,
-                                                                               signatureMode,
-                                                                               SignatureType.CMS,
-                                                                               userData,
-                                                                               trace);
-        // start the signature
-        AISSignResponse signResponse;
-        try {
-            List<AdditionalProfile> additionalProfiles = prepareAdditionalProfiles(documentsToSign);
-            AISSignRequest signRequest = ModelHelper.buildAisSignRequest(documentsToSign,
-                                                                         signatureMode,
-                                                                         SignatureType.CMS,
-                                                                         userData, additionalProfiles,
-                                                                         false, false);
-            signResponse = restClient.requestSignature(signRequest, trace);
-        } catch (Exception e) {
-            throw new AisClientException("Failed to communicate with the AIS service and obtain the signature(s) - " + trace.getId(), e);
-        }
-        if (!checkThatResponseIsSuccessful(signResponse)) {
-            return selectASignatureResultForResponse(signResponse, trace);
-        }
-        // finish the signing
-        finishDocumentsSigning(documentsToSign, signResponse, signatureMode, trace);
-        return SignatureResult.SUCCESS;
+        return performSigning(SignatureMode.STATIC,
+                              SignatureType.CMS,
+                              userData,
+                              documentHandles,
+                              false,
+                              false,
+                              false);
     }
 
     @Override
     @SuppressWarnings("DuplicatedCode")
     public SignatureResult signWithOnDemandCertificate(List<PdfHandle> documentHandles, UserData userData) {
-        SignatureMode signatureMode = SignatureMode.ON_DEMAND;
-        Trace trace = new Trace(userData.getTransactionId());
-        userData.validateYourself(signatureMode, trace);
-        documentHandles.forEach(handle -> handle.validateYourself(trace));
-        // prepare documents
-        List<PdfDocument> documentsToSign = prepareMultipleDocumentsForSigning(documentHandles,
-                                                                               signatureMode,
-                                                                               SignatureType.CMS,
-                                                                               userData,
-                                                                               trace);
-        // start the signature
-        AISSignResponse signResponse;
-        try {
-            List<AdditionalProfile> additionalProfiles = prepareAdditionalProfiles(documentsToSign,
-                                                                                   AdditionalProfile.ON_DEMAND_CERTIFICATE);
-            AISSignRequest signRequest = ModelHelper.buildAisSignRequest(documentsToSign,
-                                                                         signatureMode,
-                                                                         SignatureType.CMS,
-                                                                         userData, additionalProfiles,
-                                                                         false, true);
-            signResponse = restClient.requestSignature(signRequest, trace);
-        } catch (Exception e) {
-            throw new AisClientException("Failed to communicate with the AIS service and obtain the signature(s) - " + trace.getId(), e);
-        }
-        if (!checkThatResponseIsSuccessful(signResponse)) {
-            return selectASignatureResultForResponse(signResponse, trace);
-        }
-        // finish the signing
-        finishDocumentsSigning(documentsToSign, signResponse, signatureMode, trace);
-        return SignatureResult.SUCCESS;
+        return performSigning(SignatureMode.ON_DEMAND,
+                              SignatureType.CMS,
+                              userData,
+                              documentHandles,
+                              false,
+                              true,
+                              false,
+                              AdditionalProfile.ON_DEMAND_CERTIFICATE);
     }
 
     @Override
     @SuppressWarnings("DuplicatedCode")
     public SignatureResult signWithOnDemandCertificateAndStepUp(List<PdfHandle> documentHandles, UserData userData) {
-        SignatureMode signatureMode = SignatureMode.ON_DEMAND_STEP_UP;
-        Trace trace = new Trace(userData.getTransactionId());
-        userData.validateYourself(signatureMode, trace);
-        documentHandles.forEach(handle -> handle.validateYourself(trace));
-        // prepare documents
-        List<PdfDocument> documentsToSign = prepareMultipleDocumentsForSigning(documentHandles,
-                                                                               signatureMode,
-                                                                               SignatureType.CMS,
-                                                                               userData,
-                                                                               trace);
-        // start the signature
-        AISSignResponse signResponse;
-        try {
-            List<AdditionalProfile> additionalProfiles = prepareAdditionalProfiles(documentsToSign,
-                                                                                   AdditionalProfile.ON_DEMAND_CERTIFICATE,
-                                                                                   AdditionalProfile.REDIRECT,
-                                                                                   AdditionalProfile.ASYNC);
-            AISSignRequest signRequest = ModelHelper.buildAisSignRequest(documentsToSign,
-                                                                         signatureMode,
-                                                                         SignatureType.CMS,
-                                                                         userData, additionalProfiles, true, true);
-            signResponse = restClient.requestSignature(signRequest, trace);
-        } catch (Exception e) {
-            throw new AisClientException("Failed to communicate with the AIS service and obtain the signature(s) - " + trace.getId(), e);
-        }
-        if (!checkThatResponseIsPending(signResponse)) {
-            return selectASignatureResultForResponse(signResponse, trace);
-        }
-        // poll for signature status
-        signResponse = pollUntilSignatureIsComplete(signResponse, userData, trace);
-        if (!checkThatResponseIsSuccessful(signResponse)) {
-            return selectASignatureResultForResponse(signResponse, trace);
-        }
-        // finish the signing
-        finishDocumentsSigning(documentsToSign, signResponse, signatureMode, trace);
-        return SignatureResult.SUCCESS;
+        return performSigning(SignatureMode.ON_DEMAND_STEP_UP,
+                              SignatureType.CMS,
+                              userData,
+                              documentHandles,
+                              true,
+                              true,
+                              true,
+                              AdditionalProfile.ON_DEMAND_CERTIFICATE,
+                              AdditionalProfile.REDIRECT,
+                              AdditionalProfile.ASYNC);
     }
 
     @Override
     public SignatureResult timestamp(List<PdfHandle> documentHandles, UserData userData) {
-        SignatureMode signatureMode = SignatureMode.TIMESTAMP;
-        Trace trace = new Trace(userData.getTransactionId());
-        userData.validateYourself(signatureMode, trace);
-        documentHandles.forEach(handle -> handle.validateYourself(trace));
-        // prepare documents
-        List<PdfDocument> documentsToSign = prepareMultipleDocumentsForSigning(documentHandles,
-                                                                               signatureMode,
-                                                                               SignatureType.TIMESTAMP,
-                                                                               userData,
-                                                                               trace);
-        AISSignResponse signResponse;
-        try {
-            List<AdditionalProfile> additionalProfiles = prepareAdditionalProfiles(documentsToSign, AdditionalProfile.TIMESTAMP);
-            AISSignRequest signRequest = ModelHelper.buildAisSignRequest(documentsToSign,
-                                                                         signatureMode,
-                                                                         SignatureType.TIMESTAMP,
-                                                                         userData, additionalProfiles,
-                                                                         false, false);
-            signResponse = restClient.requestSignature(signRequest, trace);
-        } catch (Exception e) {
-            throw new AisClientException("Failed to communicate with the AIS service and obtain the signature(s) - " + trace.getId(), e);
-        }
-        if (!checkThatResponseIsSuccessful(signResponse)) {
-            return selectASignatureResultForResponse(signResponse, trace);
-        }
-        // finish the signing
-        finishDocumentsSigning(documentsToSign, signResponse, signatureMode, trace);
-        return SignatureResult.SUCCESS;
+        return performSigning(SignatureMode.TIMESTAMP,
+                              SignatureType.TIMESTAMP,
+                              userData,
+                              documentHandles,
+                              false,
+                              false,
+                              false,
+                              AdditionalProfile.TIMESTAMP);
     }
 
     @Override
@@ -238,6 +148,47 @@ public class AisClientImpl implements AisClient {
     }
 
     // ----------------------------------------------------------------------------------------------------
+
+    private SignatureResult performSigning(SignatureMode signatureMode,
+                                           SignatureType signatureType,
+                                           UserData userData,
+                                           List<PdfHandle> documentHandles,
+                                           boolean withStepUp,
+                                           boolean withCertificateRequest,
+                                           boolean withPolling,
+                                           AdditionalProfile... additionalProfiles) {
+        Trace trace = new Trace(userData.getTransactionId());
+        userData.validateYourself(signatureMode, trace);
+        documentHandles.forEach(handle -> handle.validateYourself(trace));
+        // prepare documents
+        List<PdfDocument> documentsToSign = prepareMultipleDocumentsForSigning(documentHandles, signatureMode, signatureType, userData, trace);
+        // start the signature
+        AISSignResponse signResponse;
+        try {
+            try {
+                List<AdditionalProfile> preparedAdditionalProfiles = prepareAdditionalProfiles(documentsToSign, additionalProfiles);
+                AISSignRequest signRequest = ModelHelper.buildAisSignRequest(documentsToSign, signatureMode, signatureType, userData,
+                                                                             preparedAdditionalProfiles, withStepUp, withCertificateRequest);
+                signResponse = restClient.requestSignature(signRequest, trace);
+            } catch (Exception e) {
+                throw new AisClientException("Failed to communicate with the AIS service and obtain the signature(s) - " + trace.getId(), e);
+            }
+            if (withPolling) {
+                if (!checkThatResponseIsPending(signResponse)) {
+                    return selectASignatureResultForResponse(signResponse, trace);
+                }
+                // poll for signature status
+                signResponse = pollUntilSignatureIsComplete(signResponse, userData, trace);
+            }
+            if (!checkThatResponseIsSuccessful(signResponse)) {
+                return selectASignatureResultForResponse(signResponse, trace);
+            }
+            finishDocumentsSigning(documentsToSign, signResponse, signatureMode, trace);
+            return SignatureResult.SUCCESS;
+        } finally {
+            documentsToSign.forEach(PdfDocument::close);
+        }
+    }
 
     @SuppressWarnings("SameParameterValue")
     private List<PdfDocument> prepareMultipleDocumentsForSigning(List<PdfHandle> documentHandles,
