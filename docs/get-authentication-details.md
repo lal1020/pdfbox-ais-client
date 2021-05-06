@@ -44,7 +44,8 @@ Claimed Identities and CA certificates, you can use them for configuring the AIS
 
 Configuration way:
 ```properties
-# ...
+# The server certificate file can be left empty in most cases, if you are using the Swisscom AIS production server (the CA that issued
+# the SSL/TLS certificate is already trusted on the client's host). Otherwise, a CA certificate to trust can be specified here.
 server.cert.file=/home/user/ais-server.crt
 # ...
 client.auth.keyFile=/home/user/ais-client.key
@@ -60,6 +61,8 @@ Programmatically way:
 ```java
 RestClientConfiguration restConfig = new RestClientConfiguration();
 // ...
+// The server certificate file can be left empty in most cases, if you are using the Swisscom AIS production server (the CA that issued
+// the SSL/TLS certificate is already trusted on the client's host). Otherwise, a CA certificate to trust can be specified here.
 restConfig.setServerCertificateFile("/home/user/ais-server.crt");
 restConfig.setClientKeyFile("/home/user/ais-client.key");
 restConfig.setClientKeyPassword("secret");

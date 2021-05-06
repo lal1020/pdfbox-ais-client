@@ -95,7 +95,9 @@ public class RestClientImpl implements RestClient {
             SSLContextBuilder sslContextBuilder = SSLContexts.custom()
                 .loadKeyMaterial(produceTheKeyStore(config),
                                  keyToCharArray(config.getClientKeyPassword()), produceAPrivateKeyStrategy());
-            sslContextBuilder.loadTrustMaterial(produceTheTrustStore(config), null);
+            if (Utils.notEmpty(config.getServerCertificateFile())) {
+                sslContextBuilder.loadTrustMaterial(produceTheTrustStore(config), null);
+            }
             sslConnectionSocketFactory = new SSLConnectionSocketFactory(sslContextBuilder.build());
         } catch (Exception e) {
             throw new AisClientException("Failed to configure the TLS/SSL connection factory for the AIS client", e);

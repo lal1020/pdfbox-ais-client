@@ -10,7 +10,8 @@ The AIS client can be configured from a Java properties file. Here is an example
 server.rest.signUrl=https://ais.swisscom.com/AIS-Server/rs/v1.0/sign
 # The AIS server REST URL for sending the Signature status poll requests (Pending requests)
 server.rest.pendingUrl=https://ais.swisscom.com/AIS-Server/rs/v1.0/pending
-# The AIS server trusted CA certificate file
+# The server certificate file can be left empty in most cases, if you are using the Swisscom AIS production server (the CA that issued
+# the SSL/TLS certificate is already trusted on the client's host). Otherwise, a CA certificate to trust can be specified here.
 server.cert.file=/home/user/ais-server.crt
 # --
 # The client's private key file (corresponding to the public key attached to the client's certificate)

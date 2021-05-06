@@ -85,8 +85,6 @@ public class RestClientConfiguration {
     }
 
     public void setServerCertificateFile(String serverCertificateFile) {
-        valueNotEmpty(serverCertificateFile,
-                      "The serverCertificateFile parameter of the REST client configuration must not be empty", null);
         this.serverCertificateFile = serverCertificateFile;
     }
 
@@ -174,10 +172,11 @@ public class RestClientConfiguration {
         setClientKeyFile(getStringNotNull(provider, "client.auth.keyFile"));
         setClientKeyPassword(provider.getProperty("client.auth.keyPassword"));
         setClientCertificateFile(getStringNotNull(provider, "client.cert.file"));
-        setServerCertificateFile(getStringNotNull(provider, "server.cert.file"));
+        setServerCertificateFile(provider.getProperty("server.cert.file"));
         setMaxTotalConnections(getIntNotNull(provider, "client.http.maxTotalConnections"));
         setMaxConnectionsPerRoute(getIntNotNull(provider, "client.http.maxConnectionsPerRoute"));
         setConnectionTimeoutInSec(getIntNotNull(provider, "client.http.connectionTimeoutInSeconds"));
         setResponseTimeoutInSec(getIntNotNull(provider, "client.http.responseTimeoutInSeconds"));
     }
+
 }
