@@ -4,13 +4,23 @@ A Java client library for using the [Swisscom All-in Signing Service (AIS)](http
 to sign and/or timestamp PDF documents. The library can be used either as a project dependency or as a command-line tool for batch operations. 
 It relies on the [Apache PDFBox](https://pdfbox.apache.org/) library for PDF processing.
 
+## Demo Video: PDFBox Client vs. old iText Client
+
+* https://swisscom-my.sharepoint.com/:v:/p/mike_sauerer/EWG7R_eMLh5Fk-zfgpmkYpwBzw91gfNLOrnTi01XBhNJ_A?e=iCKZUi
+
+or alternativelly if you cannot access the first link, you need to download the raw video file using the following link.
+
+* https://github.com/SwisscomTrustServices/pdfbox-ais/blob/main/Demo_Video_PDFBox%20client%20vs.%20old%20iText%20Client.mp4
+
 ## Getting started
 
 To start using the Swisscom AIS service and this client library, do the following:
-1. [Get authentication details to use with the AIS client](docs/get-authentication-details.md).   
-2. [Build or download the AIS client binary package](docs/build-or-download.md)
-3. [Configure the AIS client for your use case](docs/configure-the-AIS-client.md)
-4. Use the AIS client, either [programmatically](docs/use-the-AIS-client-programmatically.md) or from the [command line](docs/use-the-AIS-client-via-CLI.md)
+
+1. Read the most frequent asked question when doing a POC. https://github.com/SwisscomTrustServices/AIS-Postman-Samples/blob/main/docs/Q-%26-A-all-topics-English.md
+3. [Get authentication details to use with the AIS client](docs/get-authentication-details.md).   
+4. [Build or download the AIS client binary package](docs/build-or-download.md)
+5. [Configure the AIS client for your use case](docs/configure-the-AIS-client.md)
+6. Use the AIS client, either [programmatically](docs/use-the-AIS-client-programmatically.md) or from the [command line](docs/use-the-AIS-client-via-CLI.md)
 
 Other topics of interest might be:
 * [On PAdES Long Term Validation support](docs/pades-long-term-validation.md)
