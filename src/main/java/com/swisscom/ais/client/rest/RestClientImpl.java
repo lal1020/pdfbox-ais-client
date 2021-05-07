@@ -69,6 +69,8 @@ import java.util.concurrent.TimeUnit;
 
 import javax.net.ssl.SSLException;
 
+import static com.swisscom.ais.client.utils.Utils.closeResource;
+
 public class RestClientImpl implements RestClient {
 
     private static final Logger logClient = LoggerFactory.getLogger(Loggers.CLIENT);
@@ -217,6 +219,7 @@ public class RestClientImpl implements RestClient {
             keyStore.load(null, null);
             keyStore.setKeyEntry("main", privateKey, keyToCharArray(config.getClientKeyPassword()), new Certificate[]{certificate});
 
+            closeResource(is, null);
             return keyStore;
         } catch (Exception e) {
             throw new AisClientException("Failed to initialize the TLS keystore", e);
@@ -233,6 +236,7 @@ public class RestClientImpl implements RestClient {
             keyStore.load(null, null);
             keyStore.setCertificateEntry("main", certificate);
 
+            closeResource(is, null);
             return keyStore;
         } catch (Exception e) {
             throw new AisClientException("Failed to initialize the TLS truststore", e);

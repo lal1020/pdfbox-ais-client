@@ -18,16 +18,23 @@ package com.swisscom.ais.client.utils;
 import com.swisscom.ais.client.AisClientException;
 import com.swisscom.ais.client.Cli;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.ByteArrayOutputStream;
+import java.io.Closeable;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.Objects;
 import java.util.UUID;
 
 public class Utils {
+
+    private static final Logger logClient = LoggerFactory.getLogger(Loggers.CLIENT);
 
     public static String generateRequestId() {
         return "ID-" + UUID.randomUUID().toString();
@@ -145,6 +152,20 @@ public class Utils {
 
     public static boolean notEmpty(String value) {
         return value != null && value.trim().length() > 0;
+    }
+
+    public static void closeResource(Closeable resource, Trace trace) {
+        try {
+            if (Objects.nonNull(resource)) {
+                resource.close();
+            }
+        } catch (IOException e) {
+            if (trace != null) {
+                logClient.warn("Failed to close a resource - {}", trace.getId(), e);
+            } else {
+                logClient.warn("Failed to close a resource", e);
+            }
+        }
     }
 
 }
