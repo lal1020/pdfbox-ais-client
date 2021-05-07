@@ -20,7 +20,7 @@ limitations under the License.
 
     <groupId>com.swisscom.ais</groupId>
     <artifactId>pdfbox-ais</artifactId>
-    <version>1.0.4</version>
+    <version>1.1.0</version>
     <packaging>jar</packaging>
     <name>pdfbox-ais</name>
 
