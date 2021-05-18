@@ -35,7 +35,7 @@ public class TestOnDemandSignatureWithStepUp {
     public static void main(String[] args) throws Exception {
         Properties properties = new Properties();
 
-        properties.load(TestOnDemandSignatureWithStepUp.class.getResourceAsStream("/lambda.properties"));
+        properties.load(TestOnDemandSignatureWithStepUp.class.getResourceAsStream("/build.properties"));
 
         RestClientConfiguration config = new RestClientConfiguration();
         config.setFromProperties(properties);
