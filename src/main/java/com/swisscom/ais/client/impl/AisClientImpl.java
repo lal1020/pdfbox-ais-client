@@ -22,6 +22,7 @@ import com.swisscom.ais.client.model.PdfHandle;
 import com.swisscom.ais.client.model.SignatureMode;
 import com.swisscom.ais.client.model.SignatureResult;
 import com.swisscom.ais.client.model.UserData;
+import com.swisscom.ais.client.model.VisibleSignatureDefinition;
 import com.swisscom.ais.client.rest.RestClient;
 import com.swisscom.ais.client.rest.model.*;
 import com.swisscom.ais.client.rest.model.pendingreq.AISPendingRequest;
@@ -35,6 +36,7 @@ import com.swisscom.ais.client.utils.Trace;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -214,8 +216,9 @@ public class AisClientImpl implements AisClient {
                            trace.getId());
             FileInputStream fileIn = new FileInputStream(documentHandle.getInputFromFile());
             FileOutputStream fileOut = new FileOutputStream(documentHandle.getOutputToFile());
-
-            PdfDocument newDocument = new PdfDocument(documentHandle.getOutputToFile(), fileIn, fileOut, trace);
+            VisibleSignatureDefinition signatureDefinition = documentHandle.getVisibleSignatureDefinition();
+           
+            PdfDocument newDocument = new PdfDocument(documentHandle.getOutputToFile(), fileIn, fileOut, signatureDefinition, trace);
             newDocument.prepareForSigning(documentHandle.getDigestAlgorithm(), signatureType, userData);
             return newDocument;
         } catch (Exception e) {

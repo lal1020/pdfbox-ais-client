@@ -29,6 +29,8 @@ public class PdfHandle {
 
     private DigestAlgorithm digestAlgorithm = DigestAlgorithm.SHA512;
 
+    private VisibleSignatureDefinition visibleSignatureDefinition = null;
+
     public String getInputFromFile() {
         return inputFromFile;
     }
@@ -51,6 +53,14 @@ public class PdfHandle {
 
     public void setDigestAlgorithm(DigestAlgorithm digestAlgorithm) {
         this.digestAlgorithm = digestAlgorithm;
+    }
+
+    public VisibleSignatureDefinition getVisibleSignatureDefinition() {
+        return visibleSignatureDefinition;
+    }
+
+    public void setVisibleSignatureDefinition(VisibleSignatureDefinition definition) {
+        this.visibleSignatureDefinition = definition;
     }
 
     public void validateYourself(Trace trace) {
