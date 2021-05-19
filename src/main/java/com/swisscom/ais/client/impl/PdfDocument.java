@@ -143,10 +143,10 @@ public class PdfDocument implements Closeable {
 
         // create a visible signature at the specified coordinates
         if (signatureDefinition != null){
-            Rectangle2D humanRect = new Rectangle2D.Float(signatureDefinition.x, signatureDefinition.y, signatureDefinition.width, signatureDefinition.height);
+            Rectangle2D humanRect = new Rectangle2D.Float(signatureDefinition.getX(), signatureDefinition.getY(), signatureDefinition.getWidth(), signatureDefinition.getHeight());
             PDRectangle rect = createSignatureRectangle(pdDocument, humanRect);
-            options.setVisualSignature(createVisualSignatureTemplate(pdDocument, signatureDefinition.page, signatureDefinition.icon, rect, pdSignature));
-            options.setPage(signatureDefinition.page);
+            options.setVisualSignature(createVisualSignatureTemplate(pdDocument, signatureDefinition.getPage(), signatureDefinition.getIconPath(), rect, pdSignature));
+            options.setPage(signatureDefinition.getPage());
         }
 
         pdDocument.addSignature(pdSignature, options);
@@ -322,7 +322,7 @@ public class PdfDocument implements Closeable {
     }
 
     // create a template PDF document with empty signature and return it as a stream.
-    private InputStream createVisualSignatureTemplate(PDDocument srcDoc, int pageNum, File image, PDRectangle rect, PDSignature signature) throws IOException {
+    private InputStream createVisualSignatureTemplate(PDDocument srcDoc, int pageNum, String iconPath, PDRectangle rect, PDSignature signature) throws IOException {
         try (PDDocument doc = new PDDocument()) {
             PDPage page = new PDPage(srcDoc.getPage(pageNum).getMediaBox());
             doc.addPage(page);
@@ -390,7 +390,9 @@ public class PdfDocument implements Closeable {
                 // cs.addRect(-5000, -5000, 10000, 10000);
                 // cs.fill();
 
-                if (image != null) {
+                File image = new File(iconPath);
+
+                if (image != null && image.exists()) {
                     // show background image
                     // save and restore graphics if the image is too large and needs to be scaled
                     cs.saveGraphicsState();

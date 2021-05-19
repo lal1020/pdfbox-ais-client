@@ -26,7 +26,6 @@ import com.swisscom.ais.client.rest.RestClientConfiguration;
 import com.swisscom.ais.client.rest.RestClientImpl;
 import com.swisscom.ais.client.rest.model.DigestAlgorithm;
 
-import java.io.File;
 import java.util.Collections;
 import java.util.Properties;
 
@@ -57,9 +56,8 @@ public class TestOnDemandSignatureWithStepUp {
             document.setDigestAlgorithm(DigestAlgorithm.SHA512);
             
             // to create a visible signature in the pdf, specify the signature definition and the page. Optionally, provide an icon that will be embedded in the visual signature
-            document.setVisibleSignatureDefinition(new VisibleSignatureDefinition(200, 200, 150, 30, 0, new File(properties.getProperty("local.test.visibleSignatureFile"))));
-
-
+            document.setVisibleSignatureDefinition(new VisibleSignatureDefinition(200, 200, 150, 30, 0, properties.getProperty("local.test.visibleSignatureFile")));
+ 
             SignatureResult result = aisClient.signWithOnDemandCertificateAndStepUp(Collections.singletonList(document), userData);
             System.out.println("Final result: " + result);
         }
