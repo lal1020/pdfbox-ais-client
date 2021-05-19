@@ -63,10 +63,8 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.text.SimpleDateFormat;
 import java.util.Base64;
 import java.util.Calendar;
-import java.util.Date;
 import java.util.List;
 
 import static com.swisscom.ais.client.utils.Utils.closeResource;
@@ -411,16 +409,14 @@ public class PdfDocument implements Closeable {
                 cs.newLineAtOffset(fontSize, height - leading);
                 cs.setLeading(leading);
 
-                Date date = signature.getSignDate().getTime();
-
-                SimpleDateFormat formatter = new SimpleDateFormat("dd.MM.yyyy, HH:mm");
-                String formattedDate = formatter.format(date);
+                // Date date = signature.getSignDate().getTime();
+                // SimpleDateFormat formatter = new SimpleDateFormat("dd.MM.yyyy, HH:mm");
+                // String formattedDate = formatter.format(date);
                 String reason = signature.getReason();
                 // String name = signature.getName();
-
                 // cs.showText("Signer: " + name);
                 // cs.newLine();
-                cs.showText(String.format("%s, %s",reason, formattedDate));
+                cs.showText(reason);
                 // cs.newLine();
                 // cs.showText("Reason: " + reason);
 
