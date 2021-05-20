@@ -386,11 +386,6 @@ public class PdfDocument implements Closeable {
                     cs.transform(initialScale);
                 }
 
-                // show background (just for debugging, to see the rect size + position)
-                // cs.setNonStrokingColor(Color.yellow);
-                // cs.addRect(-5000, -5000, 10000, 10000);
-                // cs.fill();
-
                 File image = new File(iconPath);
 
                 if (image != null && image.exists()) {
@@ -419,11 +414,8 @@ public class PdfDocument implements Closeable {
 
                 String formattedDate = localDateTime.format(formatter);
                 String reason = signature.getReason();
-                // String name = signature.getName();
-                // cs.showText("Signer: " + name);
-                // cs.newLine();
-                cs.showText(String.format("%s, %s", reason, formattedDate));
-                cs.showText(reason);
+  
+                cs.showText(String.format("%s %s", reason, formattedDate));
 
                 cs.endText();
             }
