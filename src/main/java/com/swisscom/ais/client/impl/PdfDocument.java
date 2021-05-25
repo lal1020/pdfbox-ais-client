@@ -418,11 +418,13 @@ public class PdfDocument implements Closeable {
                 cs.showText(String.format("%s %s", reason, formattedDate));
 
                 cs.endText();
+                cs.close();
             }
 
             // no need to set annotations and /P entry
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             doc.save(baos);
+            doc.close();
             return new ByteArrayInputStream(baos.toByteArray());
         }
     }
