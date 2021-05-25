@@ -21,6 +21,7 @@ import com.swisscom.ais.client.model.RevocationInformation;
 import com.swisscom.ais.client.model.SignatureResult;
 import com.swisscom.ais.client.model.SignatureStandard;
 import com.swisscom.ais.client.model.UserData;
+import com.swisscom.ais.client.model.VisibleSignatureDefinition;
 import com.swisscom.ais.client.rest.RestClientConfiguration;
 import com.swisscom.ais.client.rest.RestClientImpl;
 import com.swisscom.ais.client.rest.model.DigestAlgorithm;
@@ -52,7 +53,10 @@ public class TestOnDemandSignatureWithStepUp {
             document.setInputFromFile(properties.getProperty("local.test.inputFile"));
             document.setOutputToFile(properties.getProperty("local.test.outputFilePrefix") + System.currentTimeMillis() + ".pdf");
             document.setDigestAlgorithm(DigestAlgorithm.SHA512);
-
+            
+            // to create a visible signature in the pdf, specify the signature definition and the page. Optionally, provide an icon that will be embedded in the visual signature
+            document.setVisibleSignatureDefinition(new VisibleSignatureDefinition(200, 200, 150, 30, 0, properties.getProperty("local.test.visibleSignatureFile")));
+ 
             SignatureResult result = aisClient.signWithOnDemandCertificateAndStepUp(Collections.singletonList(document), userData);
             System.out.println("Final result: " + result);
         }
