@@ -24,7 +24,7 @@ For Maven projects, add the following in your _POM_ file:
         <dependency>
             <groupId>com.swisscom.ais</groupId>
             <artifactId>pdfbox-ais</artifactId>
-            <version>1.0.3</version>
+            <version>1.2.0</version>
         </dependency>
     </dependencies>
 </project>
