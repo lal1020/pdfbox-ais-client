@@ -46,7 +46,7 @@ repositories {
 }
 
 dependencies {
-    compile 'com.swisscom.ais:pdfbox-ais:1.0.3'
+    compile 'com.swisscom.ais:pdfbox-ais:1.2.0'
     // ...
 }
 ```
