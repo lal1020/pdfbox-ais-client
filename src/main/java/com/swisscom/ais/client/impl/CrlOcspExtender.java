@@ -24,9 +24,9 @@ import com.swisscom.ais.client.utils.Utils;
 import org.apache.pdfbox.cos.COSArray;
 import org.apache.pdfbox.cos.COSBase;
 import org.apache.pdfbox.cos.COSDictionary;
-import org.apache.pdfbox.cos.COSDocument;
 import org.apache.pdfbox.cos.COSName;
 import org.apache.pdfbox.cos.COSStream;
+import org.apache.pdfbox.cos.COSUpdateInfo;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDDocumentCatalog;
 import org.apache.pdfbox.pdmodel.interactive.digitalsignature.PDSignature;
@@ -50,32 +50,35 @@ public class CrlOcspExtender {
 
     private static final Logger logPdfProcessing = LoggerFactory.getLogger(Loggers.PDF_PROCESSING);
 
-    private static final String DICTIONARY_DSS = "DSS";
     private static final COSName COSNAME_DSS;
+    private static final COSName COSNAME_VRI;
     private static final COSName COSNAME_OCSPS;
+    private static final COSName COSNAME_OCSP_SINGLE;
     private static final COSName COSNAME_CRLS;
+    private static final COSName COSNAME_CRL_SINGLE;
     private static final COSName COSNAME_CERTS;
-    private static final COSName COSNAME_TYPE;
+    private static final COSName COSNAME_CERT_SINGLE;
 
     static {
         COSNAME_DSS = COSName.getPDFName("DSS");
+        COSNAME_VRI = COSName.getPDFName("VRI");
         COSNAME_OCSPS = COSName.getPDFName("OCSPs");
+        COSNAME_OCSP_SINGLE = COSName.getPDFName("OCSP");
         COSNAME_CRLS = COSName.getPDFName("CRLs");
+        COSNAME_CRL_SINGLE = COSName.getPDFName("CRL");
         COSNAME_CERTS = COSName.getPDFName("Certs");
-        COSNAME_TYPE = COSName.TYPE;
+        COSNAME_CERT_SINGLE = COSName.getPDFName("Cert");
     }
 
     // ----------------------------------------------------------------------------------------------------
 
     private final Trace trace;
     private final PDDocument pdDocument;
-    private final COSDocument cosDocument;
     private final byte[] documentBytes;
 
     public CrlOcspExtender(PDDocument pdDocument, byte[] documentBytes, Trace trace) {
         this.pdDocument = pdDocument;
         this.documentBytes = documentBytes;
-        this.cosDocument = pdDocument.getDocument();
         this.trace = trace;
     }
 
@@ -105,50 +108,61 @@ public class CrlOcspExtender {
             validationMap.put(COSName.getPDFName(getSignatureHashKey(lastSignature)), vData);
 
             // ----------------------------------------------------------------------------------------------------
-            COSDictionary pdDssDict = cosDocumentCatalog.getCOSDictionary(COSNAME_DSS);
-            COSArray ocsps = null;
-            COSArray crls = null;
-            COSArray certs = null;
-
-            if (pdDssDict != null) {
-                ocsps = pdDssDict.getCOSArray(COSNAME_OCSPS);
-                crls = pdDssDict.getCOSArray(COSNAME_CRLS);
-                certs = pdDssDict.getCOSArray(COSNAME_CERTS);
-                pdDssDict.removeItem(COSNAME_OCSPS);
-                pdDssDict.removeItem(COSNAME_CRLS);
-                pdDssDict.removeItem(COSNAME_CERTS);
-            }
-            pdDssDict = (pdDssDict != null) ? pdDssDict : createDssDictionary();
-            ocsps = (ocsps != null) ? ocsps : createArray();
-            crls = (crls != null) ? crls : createArray();
-            certs = (certs != null) ? certs : createArray();
+            COSDictionary pdDssDict = getOrCreateDictionaryEntry(COSDictionary.class, cosDocumentCatalog, COSNAME_DSS);
+            COSDictionary pdVriMapDict = getOrCreateDictionaryEntry(COSDictionary.class, pdDssDict, COSNAME_VRI);
+            COSArray ocsps = getOrCreateDictionaryEntry(COSArray.class, pdDssDict, COSNAME_OCSPS);
+            COSArray crls = getOrCreateDictionaryEntry(COSArray.class, pdDssDict, COSNAME_CRLS);
+            COSArray certs = getOrCreateDictionaryEntry(COSArray.class, pdDssDict, COSNAME_CERTS);
 
             for (Map.Entry<COSName, ValidationData> validationEntry : validationMap.entrySet()) {
                 ValidationData validationData = validationEntry.getValue();
+                COSDictionary vriDict = new COSDictionary();
+                COSArray vriOcsps = new COSArray();
+                COSArray vriCrls = new COSArray();
+                COSArray vriCerts = new COSArray();
                 for (byte[] ocspBytes : validationData.ocsps) {
-                    COSStream stream = createStream(ocspBytes, cosDocument);
+                    COSStream stream = createStream(ocspBytes);
                     ocsps.add(stream);
+                    vriOcsps.add(stream);
                 }
                 for (byte[] crlBytes : validationData.crls) {
-                    COSStream stream = createStream(crlBytes, cosDocument);
+                    COSStream stream = createStream(crlBytes);
                     crls.add(stream);
+                    vriCrls.add(stream);
                 }
                 for (byte[] certBytes : validationData.certs) {
-                    COSStream stream = createStream(certBytes, cosDocument);
+                    COSStream stream = createStream(certBytes);
                     certs.add(stream);
+                    vriCerts.add(stream);
                 }
+                if (vriOcsps.size() > 0) {
+                    vriDict.setItem(COSNAME_OCSP_SINGLE, vriOcsps);
+                }
+                if (vriCrls.size() > 0) {
+                    vriDict.setItem(COSNAME_CRL_SINGLE, vriCrls);
+                }
+                if (vriCerts.size() > 0) {
+                    vriDict.setItem(COSNAME_CERT_SINGLE, vriCerts);
+                }
+                pdVriMapDict.setItem(validationEntry.getKey(), vriDict);
             }
 
             if (ocsps.size() > 0) {
                 pdDssDict.setItem(COSNAME_OCSPS, ocsps);
+            } else {
+                pdDssDict.removeItem(COSNAME_OCSPS);
             }
             if (crls.size() > 0) {
                 pdDssDict.setItem(COSNAME_CRLS, crls);
+            } else {
+                pdDssDict.removeItem(COSNAME_CRLS);
             }
             if (certs.size() > 0) {
                 pdDssDict.setItem(COSNAME_CERTS, certs);
+            } else {
+                pdDssDict.removeItem(COSNAME_CERTS);
             }
-
+            pdDssDict.setItem(COSNAME_VRI, pdVriMapDict);
             cosDocumentCatalog.setItem(COSNAME_DSS, pdDssDict);
         } catch (Exception e) {
             throw new AisClientException("An error occurred processing the signature and embedding CRL and OCSP data", e);
@@ -240,26 +254,42 @@ public class CrlOcspExtender {
 
     }
 
-    private COSDictionary createDssDictionary() {
-        COSDictionary dictionary = new COSDictionary();
-        dictionary.setNeedToBeUpdated(true);
-        dictionary.setName(COSNAME_TYPE, DICTIONARY_DSS);
-        dictionary.setDirect(true);
-        return dictionary;
+    /**
+     * Gets or creates a dictionary entry. If existing checks for the type and sets need to be
+     * updated.
+     *
+     * @param clazz  the class of the dictionary entry, must implement COSUpdateInfo
+     * @param parent where to find the element
+     * @param name   of the element
+     * @return a Element of given class, new or existing
+     * @throws IOException when the type of the element is wrong
+     */
+    private static <T extends COSBase & COSUpdateInfo> T getOrCreateDictionaryEntry(Class<T> clazz,
+                                                                                    COSDictionary parent,
+                                                                                    COSName name) throws IOException {
+        T result;
+        COSBase element = parent.getDictionaryObject(name);
+        if (clazz.isInstance(element)) {
+            result = clazz.cast(element);
+            result.setNeedToBeUpdated(true);
+        } else if (element != null) {
+            throw new IOException("Element " + name + " from dictionary is not of type " + clazz.getCanonicalName());
+        } else {
+            try {
+                result = clazz.getDeclaredConstructor().newInstance();
+            } catch (Exception ex) {
+                throw new IOException("Failed to create new instance of " + clazz.getCanonicalName(), ex);
+            }
+            result.setDirect(false);
+            parent.setItem(name, result);
+        }
+        return result;
     }
 
-    private COSArray createArray() {
-        COSArray array = new COSArray();
-        array.setNeedToBeUpdated(true);
-        return array;
-    }
-
-    private COSStream createStream(byte[] data, COSDocument cosDocument) throws IOException {
-        COSStream stream = cosDocument.createCOSStream();
-        stream.setNeedToBeUpdated(true);
+    private COSStream createStream(byte[] data) throws IOException {
+        COSStream stream = pdDocument.getDocument().createCOSStream();
         try (OutputStream unfilteredStream = stream.createOutputStream(COSName.FLATE_DECODE)) {
             unfilteredStream.write(data);
-            unfilteredStream.flush();
         }
         return stream;
     }
