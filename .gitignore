@@ -36,6 +36,8 @@ docs/*.pdf
 gen-material/gen
 
 local-*.*
+tmp-*.*
+acme-*.*
 config.properties
 
 src/main/java/com/swisscom/ais/LocalTestOnDemandSignatureWithStepUp.java
