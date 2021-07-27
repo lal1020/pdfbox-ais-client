@@ -1,4 +1,4 @@
-# Swisscom AIS Java client 
+# PDFBox based AIS Java Client 
 
 A Java client library for using the [Swisscom All-in Signing Service (AIS)](https://www.swisscom.ch/en/business/enterprise/offer/security/all-in-signing-service.html)
 to sign and/or timestamp PDF documents. The library can be used either as a project dependency or as a command-line tool for batch operations. 
