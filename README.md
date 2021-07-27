@@ -4,13 +4,15 @@ A Java client library for using the [Swisscom All-in Signing Service (AIS)](http
 to sign and/or timestamp PDF documents. The library can be used either as a project dependency or as a command-line tool for batch operations. 
 It relies on the [Apache PDFBox](https://pdfbox.apache.org/) library for PDF processing.
 
-## Demo Video: PDFBox Client vs. old iText Client
+## Demo Video: PDFBox Client Video Demo
+
+[![Watcht the video](https://i.imgur.com/14dJmDU.png)](https://youtu.be/bISFCfkqzWY)
+
+See it on SharePoint
 
 * https://swisscom-my.sharepoint.com/:v:/p/mike_sauerer/EWG7R_eMLh5Fk-zfgpmkYpwBzw91gfNLOrnTi01XBhNJ_A?e=iCKZUi
 
-or alternativelly if you cannot access the first link, you need to download the raw video file using the following link.
 
-* https://github.com/SwisscomTrustServices/pdfbox-ais/blob/main/Demo_Video_PDFBox%20client%20vs.%20old%20iText%20Client.mp4
 
 ## Getting started
 
