@@ -29,6 +29,7 @@ import org.apache.pdfbox.cos.COSDictionary;
 import org.apache.pdfbox.cos.COSName;
 import org.apache.pdfbox.io.IOUtils;
 import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.pdmodel.PDDocumentInformation;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.PDPageContentStream;
 import org.apache.pdfbox.pdmodel.PDResources;
@@ -51,16 +52,10 @@ import org.apache.pdfbox.pdmodel.interactive.form.PDField;
 import org.apache.pdfbox.pdmodel.interactive.form.PDSignatureField;
 import org.apache.pdfbox.util.Matrix;
 
-import java.awt.Color;
-import java.awt.geom.Rectangle2D;
+import java.awt.*;
 import java.awt.geom.AffineTransform;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.Closeable;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.awt.geom.Rectangle2D;
+import java.io.*;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
@@ -94,7 +89,7 @@ public class PdfDocument implements Closeable {
         this.contentIn = contentIn;
         this.contentOut = contentOut;
         this.signatureDefinition = signatureDefinition;
-        
+
         this.inMemoryStream = new ByteArrayOutputStream();
         this.trace = trace;
     }
@@ -110,6 +105,21 @@ public class PdfDocument implements Closeable {
         if (accessPermissions == 1) {
             throw new AisClientException("Cannot sign document [" + name + "]. Document contains a certification " +
                                          "that does not allow any changes.");
+        }
+
+        // workaround for documents produced with Aspose PDF for .NET, version 21.3 or earlier
+        // see https://stackoverflow.com/questions/68801701/pades-ltv-signing-of-a-pdf-a-3a-document-yields-invalid-signature
+        // the idea here is to save the document and reload it, this way correctly writing the cross-reference table that otherwise
+        // would trip Adobe Acrobat and invalidate the signature
+        if (documentIsProducedWithAspose(pdDocument)) {
+            try {
+                pdDocument.save(inMemoryStream);
+                pdDocument.close();
+                pdDocument = PDDocument.load(inMemoryStream.toByteArray());
+                inMemoryStream.reset();
+            } catch (Exception e) {
+                throw new AisClientException("Failed to prepare document for signing - " + trace.getId(), e);
+            }
         }
 
         PDSignature pdSignature = new PDSignature();
@@ -141,17 +151,20 @@ public class PdfDocument implements Closeable {
         SignatureOptions options = new SignatureOptions();
         options.setPreferredSignatureSize(signatureType.getEstimatedSignatureSizeInBytes());
 
-
         // create a visible signature at the specified coordinates
-        if (signatureDefinition != null){
-            Rectangle2D humanRect = new Rectangle2D.Float(signatureDefinition.getX(), signatureDefinition.getY(), signatureDefinition.getWidth(), signatureDefinition.getHeight());
+        if (signatureDefinition != null) {
+            Rectangle2D
+                humanRect =
+                new Rectangle2D.Float(signatureDefinition.getX(), signatureDefinition.getY(), signatureDefinition.getWidth(),
+                                      signatureDefinition.getHeight());
             PDRectangle rect = createSignatureRectangle(pdDocument, humanRect);
-            options.setVisualSignature(createVisualSignatureTemplate(pdDocument, signatureDefinition.getPage(), signatureDefinition.getIconPath(), rect, pdSignature));
+            options.setVisualSignature(
+                createVisualSignatureTemplate(pdDocument, signatureDefinition.getPage(), signatureDefinition.getIconPath(), rect, pdSignature));
             options.setPage(signatureDefinition.getPage());
         }
 
         pdDocument.addSignature(pdSignature, options);
-        // Set this signature's access permissions level to 0, to ensure we just sign the PDF not certify it
+        // Set this signature's access permissions level to 0, to ensure we just sign the PDF, not certify it
         // for more details: https://wwwimages2.adobe.com/content/dam/acom/en/devnet/pdf/pdfs/PDF32000_2008.pdf see section 12.7.4.5
         setPermissionsForSignatureOnly();
 
@@ -240,6 +253,11 @@ public class PdfDocument implements Closeable {
         return 0;
     }
 
+    private boolean documentIsProducedWithAspose(PDDocument pdDocument) {
+        PDDocumentInformation info = pdDocument.getDocumentInformation();
+        return info != null && info.getProducer() != null && info.getProducer().toLowerCase().contains("aspose");
+    }
+
     private void setPermissionsForSignatureOnly() throws IOException {
         List<PDSignatureField> signatureFields = pdDocument.getSignatureFields();
         PDSignatureField pdSignatureField = signatureFields.get(signatureFields.size() - 1);
@@ -280,7 +298,6 @@ public class PdfDocument implements Closeable {
     public DigestAlgorithm getDigestAlgorithm() {
         return digestAlgorithm;
     }
-
 
     // ----------------------------------------------------------------------------------------------------
 
@@ -324,7 +341,8 @@ public class PdfDocument implements Closeable {
     }
 
     // create a template PDF document with empty signature and return it as a stream.
-    private InputStream createVisualSignatureTemplate(PDDocument srcDoc, int pageNum, String iconPath, PDRectangle rect, PDSignature signature) throws IOException {
+    private InputStream createVisualSignatureTemplate(PDDocument srcDoc, int pageNum, String iconPath, PDRectangle rect, PDSignature signature)
+        throws IOException {
         try (PDDocument doc = new PDDocument()) {
             PDPage page = new PDPage(srcDoc.getPage(pageNum).getMediaBox());
             doc.addPage(page);
@@ -353,7 +371,7 @@ public class PdfDocument implements Closeable {
                 case 90:
                     form.setMatrix(AffineTransform.getQuadrantRotateInstance(1));
                     initialScale = Matrix.getScaleInstance(bbox.getWidth() / bbox.getHeight(),
-                            bbox.getHeight() / bbox.getWidth());
+                                                           bbox.getHeight() / bbox.getWidth());
                     height = bbox.getWidth();
                     break;
                 case 180:
@@ -362,7 +380,7 @@ public class PdfDocument implements Closeable {
                 case 270:
                     form.setMatrix(AffineTransform.getQuadrantRotateInstance(3));
                     initialScale = Matrix.getScaleInstance(bbox.getWidth() / bbox.getHeight(),
-                            bbox.getHeight() / bbox.getWidth());
+                                                           bbox.getHeight() / bbox.getWidth());
                     height = bbox.getWidth();
                     break;
                 case 0:
@@ -415,7 +433,7 @@ public class PdfDocument implements Closeable {
 
                 String formattedDate = localDateTime.format(formatter);
                 String reason = signature.getReason();
-  
+
                 cs.showText(String.format("%s %s", reason, formattedDate));
 
                 cs.endText();
@@ -424,7 +442,7 @@ public class PdfDocument implements Closeable {
             // no need to set annotations and /P entry
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             doc.save(baos);
-            
+
             return new ByteArrayInputStream(baos.toByteArray());
         }
     }

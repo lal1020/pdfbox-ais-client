@@ -20,7 +20,7 @@ limitations under the License.
 
     <groupId>com.swisscom.ais</groupId>
     <artifactId>pdfbox-ais</artifactId>
-    <version>1.2.1</version>
+    <version>1.2.2</version>
     <packaging>jar</packaging>
     <name>pdfbox-ais</name>
 
@@ -32,11 +32,19 @@ limitations under the License.
         <maven.compiler.target>8</maven.compiler.target>
         <lib.slf4j.version>1.7.30</lib.slf4j.version>
         <lib.logback.version>1.2.3</lib.logback.version>
-        <lib.apache.pdfbox>2.0.21</lib.apache.pdfbox>
+        <lib.apache.pdfbox>2.0.24</lib.apache.pdfbox>
         <lib.bouncycastle>1.67</lib.bouncycastle>
         <lib.jackson.version>2.11.0</lib.jackson.version>
         <lib.httpclient.version>5.0</lib.httpclient.version>
     </properties>
+
+    <repositories>
+        <repository>
+            <id>apache-snapshots</id>
+            <name>Apache Snapshot Repository</name>
+            <url>https://repository.apache.org/content/groups/snapshots</url>
+        </repository>
+    </repositories>
 
     <dependencies>
         <dependency>
