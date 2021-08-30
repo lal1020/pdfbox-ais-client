@@ -29,7 +29,6 @@ import org.apache.pdfbox.cos.COSDictionary;
 import org.apache.pdfbox.cos.COSName;
 import org.apache.pdfbox.io.IOUtils;
 import org.apache.pdfbox.pdmodel.PDDocument;
-import org.apache.pdfbox.pdmodel.PDDocumentInformation;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.PDPageContentStream;
 import org.apache.pdfbox.pdmodel.PDResources;
@@ -105,21 +104,6 @@ public class PdfDocument implements Closeable {
         if (accessPermissions == 1) {
             throw new AisClientException("Cannot sign document [" + name + "]. Document contains a certification " +
                                          "that does not allow any changes.");
-        }
-
-        // workaround for documents produced with Aspose PDF for .NET, version 21.3 or earlier
-        // see https://stackoverflow.com/questions/68801701/pades-ltv-signing-of-a-pdf-a-3a-document-yields-invalid-signature
-        // the idea here is to save the document and reload it, this way correctly writing the cross-reference table that otherwise
-        // would trip Adobe Acrobat and invalidate the signature
-        if (documentIsProducedWithAspose(pdDocument)) {
-            try {
-                pdDocument.save(inMemoryStream);
-                pdDocument.close();
-                pdDocument = PDDocument.load(inMemoryStream.toByteArray());
-                inMemoryStream.reset();
-            } catch (Exception e) {
-                throw new AisClientException("Failed to prepare document for signing - " + trace.getId(), e);
-            }
         }
 
         PDSignature pdSignature = new PDSignature();
@@ -251,11 +235,6 @@ public class PdfDocument implements Closeable {
             }
         }
         return 0;
-    }
-
-    private boolean documentIsProducedWithAspose(PDDocument pdDocument) {
-        PDDocumentInformation info = pdDocument.getDocumentInformation();
-        return info != null && info.getProducer() != null && info.getProducer().toLowerCase().contains("aspose");
     }
 
     private void setPermissionsForSignatureOnly() throws IOException {
