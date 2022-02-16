@@ -23,6 +23,7 @@ import com.swisscom.ais.client.rest.model.SignatureType;
 import com.swisscom.ais.client.utils.Trace;
 import com.swisscom.ais.client.utils.Utils;
 
+import org.apache.commons.codec.binary.StringUtils;
 import org.apache.pdfbox.cos.COSArray;
 import org.apache.pdfbox.cos.COSBase;
 import org.apache.pdfbox.cos.COSDictionary;
@@ -384,16 +385,17 @@ public class PdfDocument implements Closeable {
                     cs.transform(initialScale);
                 }
 
-                File image = new File(iconPath);
-
-                if (image != null && image.exists()) {
-                    // show background image
-                    // save and restore graphics if the image is too large and needs to be scaled
-                    cs.saveGraphicsState();
-                    cs.transform(Matrix.getScaleInstance(0.25f, 0.25f));
-                    PDImageXObject img = PDImageXObject.createFromFileByExtension(image, doc);
-                    cs.drawImage(img, 0, 0);
-                    cs.restoreGraphicsState();
+                if(iconPath != null) {
+                    File image = new File(iconPath);
+                    if (image != null && image.exists()) {
+                        // show background image
+                        // save and restore graphics if the image is too large and needs to be scaled
+                        cs.saveGraphicsState();
+                        cs.transform(Matrix.getScaleInstance(0.25f, 0.25f));
+                        PDImageXObject img = PDImageXObject.createFromFileByExtension(image, doc);
+                        cs.drawImage(img, 0, 0);
+                        cs.restoreGraphicsState();
+                    }
                 }
 
                 // show text

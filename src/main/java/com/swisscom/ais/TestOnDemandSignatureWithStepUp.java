@@ -53,7 +53,8 @@ public class TestOnDemandSignatureWithStepUp {
             document.setInputFromFile(properties.getProperty("local.test.inputFile"));
             document.setOutputToFile(properties.getProperty("local.test.outputFilePrefix") + System.currentTimeMillis() + ".pdf");
             document.setDigestAlgorithm(DigestAlgorithm.SHA512);
-            
+
+            // the image place, size and location are customizable
             // to create a visible signature in the pdf, specify the signature definition and the page. Optionally, provide an icon that will be embedded in the visual signature
             document.setVisibleSignatureDefinition(new VisibleSignatureDefinition(200, 200, 150, 30, 0, properties.getProperty("local.test.visibleSignatureFile")));
  
