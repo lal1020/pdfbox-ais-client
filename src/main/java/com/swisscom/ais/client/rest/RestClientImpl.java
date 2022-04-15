@@ -26,21 +26,26 @@ import com.swisscom.ais.client.rest.model.signresp.AISSignResponse;
 import com.swisscom.ais.client.utils.Loggers;
 import com.swisscom.ais.client.utils.Trace;
 import com.swisscom.ais.client.utils.Utils;
-
 import org.apache.commons.codec.CharEncoding;
+import org.apache.hc.client5.http.auth.AuthScope;
+import org.apache.hc.client5.http.auth.UsernamePasswordCredentials;
 import org.apache.hc.client5.http.classic.methods.HttpPost;
 import org.apache.hc.client5.http.config.RequestConfig;
+import org.apache.hc.client5.http.impl.auth.BasicCredentialsProvider;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
+import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
 import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactory;
 import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.HttpHeaders;
+import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.ParseException;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.io.entity.StringEntity;
+import org.apache.hc.core5.net.URIAuthority;
 import org.apache.hc.core5.ssl.PrivateKeyStrategy;
 import org.apache.hc.core5.ssl.SSLContextBuilder;
 import org.apache.hc.core5.ssl.SSLContexts;
@@ -55,6 +60,7 @@ import org.bouncycastle.openssl.jcajce.JcePEMDecryptorProviderBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.net.ssl.SSLException;
 import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.FileReader;
@@ -115,10 +121,85 @@ public class RestClientImpl implements RestClient {
             .setResponseTimeout(config.getResponseTimeoutInSec(), TimeUnit.SECONDS)
             .build();
 
-        httpClient = HttpClients.custom()
-            .setConnectionManager(connectionManager)
-            .setDefaultRequestConfig(httpClientRequestConfig)
-            .build();
+        setUpRestClient(config, connectionManager, httpClientRequestConfig);
+    }
+
+    private void setUpRestClient(RestClientConfiguration config, PoolingHttpClientConnectionManager connectionManager, RequestConfig httpClientRequestConfig) {
+        HttpClientBuilder httpClientBuilder = HttpClients.custom();
+
+        if (config.isEnableProxy()) {
+            enableProxy(httpClientBuilder);
+        }
+
+        this.httpClient = httpClientBuilder
+                .setConnectionManager(connectionManager)
+                .setDefaultRequestConfig(httpClientRequestConfig)
+                .build();
+    }
+
+    private void enableProxy(HttpClientBuilder httpClientBuilder) {
+
+        String proxyHost = this.getProxyHost();
+        int port = this.getProxyPortNumber();
+
+        setRestClientProxy(httpClientBuilder, proxyHost, port);
+
+        if (config.isEnableProxyAuth()) {
+            enableProxyAuthentication(httpClientBuilder, proxyHost, port);
+        }
+    }
+
+    private void enableProxyAuthentication(HttpClientBuilder httpClientBuilder, String proxyHost, int port) {
+        BasicCredentialsProvider credentialsProvider = new BasicCredentialsProvider();
+        String username = this.getProxyUserName();
+        char[] password = this.getProxyPassword();
+
+        AuthScope authScope = new AuthScope(proxyHost, port);
+        UsernamePasswordCredentials credentials = new UsernamePasswordCredentials(username, password);
+        credentialsProvider.setCredentials(authScope, credentials);
+
+        httpClientBuilder.setDefaultCredentialsProvider(credentialsProvider);
+    }
+
+    private void setRestClientProxy(HttpClientBuilder httpClientBuilder, String proxyHost, int port) {
+        if (config.getProxyUsername() != null && config.getProxyUsername().length() > 0) {
+            httpClientBuilder.setProxy(new HttpHost(new URIAuthority(config.getProxyUsername(), proxyHost, port)));
+        } else {
+            httpClientBuilder.setProxy(new HttpHost(new URIAuthority(proxyHost, port)));
+        }
+    }
+
+    private String getProxyHost() {
+        String proxyHost = config.getProxyHost();
+        if (proxyHost == null || proxyHost.length() == 0) {
+            throw new IllegalStateException("Invalid configuration. The server proxy host is missing, empty or invalid.");
+        }
+        return proxyHost;
+    }
+
+    private char[] getProxyPassword() {
+        String proxyHost = config.getProxyPassword();
+        if (proxyHost == null || proxyHost.length() == 0) {
+            throw new IllegalStateException("Invalid configuration. The server proxy password is missing or is empty.");
+        }
+        return proxyHost.toCharArray();
+    }
+
+    private String getProxyUserName() {
+        String proxyHost = config.getProxyUsername();
+        if (proxyHost == null || proxyHost.length() == 0) {
+            throw new IllegalStateException("Invalid configuration. The server proxy username is missing or is empty.");
+        }
+        return proxyHost;
+    }
+
+    private Integer getProxyPortNumber() {
+        try {
+            return Integer.parseInt(config.getProxyPort());
+        } catch (Exception e) {
+            throw new IllegalStateException("Invalid configuration. The server proxy port number is missing, empty or invalid.");
+        }
+
     }
 
     @Override

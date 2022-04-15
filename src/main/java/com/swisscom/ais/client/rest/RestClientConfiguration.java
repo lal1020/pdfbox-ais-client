@@ -22,10 +22,7 @@ import com.swisscom.ais.client.utils.ConfigurationProviderPropertiesImpl;
 import java.io.IOException;
 import java.util.Properties;
 
-import static com.swisscom.ais.client.utils.Utils.getIntNotNull;
-import static com.swisscom.ais.client.utils.Utils.getStringNotNull;
-import static com.swisscom.ais.client.utils.Utils.valueBetween;
-import static com.swisscom.ais.client.utils.Utils.valueNotEmpty;
+import static com.swisscom.ais.client.utils.Utils.*;
 
 public class RestClientConfiguration {
 
@@ -49,6 +46,16 @@ public class RestClientConfiguration {
     private int maxConnectionsPerRoute = CLIENT_MAX_CONNECTIONS_PER_ROUTE;
     private int connectionTimeoutInSec = CLIENT_SOCKET_TIMEOUT_IN_SEC;
     private int responseTimeoutInSec = CLIENT_RESPONSE_TIMEOUT_IN_SEC;
+
+    // ----------------------------------------------------------------------------------------------------
+
+    private boolean enableProxy;
+    private String proxyHost;
+    private String proxyPort;
+
+    private boolean enableProxyAuth;
+    private String proxyUsername;
+    private String proxyPassword;
 
     // ----------------------------------------------------------------------------------------------------
 
@@ -148,6 +155,54 @@ public class RestClientConfiguration {
         this.responseTimeoutInSec = responseTimeoutInSec;
     }
 
+    public boolean isEnableProxy() {
+        return enableProxy;
+    }
+
+    public void setEnableProxy(boolean enableProxy) {
+        this.enableProxy = enableProxy;
+    }
+
+    public String getProxyHost() {
+        return proxyHost;
+    }
+
+    public void setProxyHost(String proxyHost) {
+        this.proxyHost = proxyHost;
+    }
+
+    public String getProxyPort() {
+        return proxyPort;
+    }
+
+    public void setProxyPort(String proxyPort) {
+        this.proxyPort = proxyPort;
+    }
+
+    public boolean isEnableProxyAuth() {
+        return enableProxyAuth;
+    }
+
+    public void setEnableProxyAuth(boolean enableProxyAuth) {
+        this.enableProxyAuth = enableProxyAuth;
+    }
+
+    public String getProxyUsername() {
+        return proxyUsername;
+    }
+
+    public void setProxyUsername(String proxyUsername) {
+        this.proxyUsername = proxyUsername;
+    }
+
+    public String getProxyPassword() {
+        return proxyPassword;
+    }
+
+    public void setProxyPassword(String proxyPassword) {
+        this.proxyPassword = proxyPassword;
+    }
+
     // ----------------------------------------------------------------------------------------------------
 
     @SuppressWarnings("unused")
@@ -177,6 +232,14 @@ public class RestClientConfiguration {
         setMaxConnectionsPerRoute(getIntNotNull(provider, "client.http.maxConnectionsPerRoute"));
         setConnectionTimeoutInSec(getIntNotNull(provider, "client.http.connectionTimeoutInSeconds"));
         setResponseTimeoutInSec(getIntNotNull(provider, "client.http.responseTimeoutInSeconds"));
+
+        setEnableProxy(getBooleanNotNull(provider, "server.rest.proxy.enableProxy"));
+        setProxyHost(provider.getProperty("server.rest.proxy.host"));
+        setProxyPort(provider.getProperty("server.rest.proxy.port"));
+
+        setEnableProxyAuth(getBooleanNotNull(provider, "server.rest.proxy.enableAuthentication"));
+        setProxyPassword(provider.getProperty("server.rest.proxy.password"));
+        setProxyUsername(provider.getProperty("server.rest.proxy.username"));
     }
 
 }

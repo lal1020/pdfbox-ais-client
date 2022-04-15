@@ -60,6 +60,18 @@ public class Utils {
         return Integer.parseInt(value);
     }
 
+    public static boolean getBooleanNotNull(ConfigurationProvider provider, String propertyName) {
+        String value = provider.getProperty(propertyName);
+        if (value == null || value.isEmpty()) {
+            return false;
+        }
+        try {
+            return Boolean.parseBoolean(value);
+        } catch (Exception e) {
+            throw new IllegalStateException("Invalid configuration. The [" + propertyName + "] is not parsable.");
+        }
+    }
+
     public static String stripInnerLargeBase64Content(String source, char leftBoundChar, char rightBoundChar) {
         String pattern = leftBoundChar + "[A-Za-z0-9+\\\\/=_-]{500,}" + rightBoundChar;
         String replacement = leftBoundChar + "..." + rightBoundChar;
