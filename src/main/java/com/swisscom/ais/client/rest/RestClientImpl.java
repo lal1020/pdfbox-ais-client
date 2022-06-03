@@ -57,6 +57,9 @@ import org.bouncycastle.openssl.PEMKeyPair;
 import org.bouncycastle.openssl.PEMParser;
 import org.bouncycastle.openssl.jcajce.JcaPEMKeyConverter;
 import org.bouncycastle.openssl.jcajce.JcePEMDecryptorProviderBuilder;
+import org.bouncycastle.operator.InputDecryptorProvider;
+import org.bouncycastle.pkcs.PKCS8EncryptedPrivateKeyInfo;
+import org.bouncycastle.pkcs.jcajce.JcePKCSPBEInputDecryptorProviderBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -101,8 +104,8 @@ public class RestClientImpl implements RestClient {
         SSLConnectionSocketFactory sslConnectionSocketFactory;
         try {
             SSLContextBuilder sslContextBuilder = SSLContexts.custom()
-                .loadKeyMaterial(produceTheKeyStore(config),
-                                 keyToCharArray(config.getClientKeyPassword()), produceAPrivateKeyStrategy());
+                    .loadKeyMaterial(produceTheKeyStore(config),
+                            keyToCharArray(config.getClientKeyPassword()), produceAPrivateKeyStrategy());
             if (Utils.notEmpty(config.getServerCertificateFile())) {
                 sslContextBuilder.loadTrustMaterial(produceTheTrustStore(config), null);
             }
@@ -112,14 +115,14 @@ public class RestClientImpl implements RestClient {
         }
 
         PoolingHttpClientConnectionManager connectionManager = PoolingHttpClientConnectionManagerBuilder.create()
-            .setMaxConnTotal(config.getMaxTotalConnections())
-            .setMaxConnPerRoute(config.getMaxConnectionsPerRoute())
-            .setSSLSocketFactory(sslConnectionSocketFactory)
-            .build();
+                .setMaxConnTotal(config.getMaxTotalConnections())
+                .setMaxConnPerRoute(config.getMaxConnectionsPerRoute())
+                .setSSLSocketFactory(sslConnectionSocketFactory)
+                .build();
         RequestConfig httpClientRequestConfig = RequestConfig.custom()
-            .setConnectTimeout(config.getConnectionTimeoutInSec(), TimeUnit.SECONDS)
-            .setResponseTimeout(config.getResponseTimeoutInSec(), TimeUnit.SECONDS)
-            .build();
+                .setConnectTimeout(config.getConnectionTimeoutInSec(), TimeUnit.SECONDS)
+                .setResponseTimeout(config.getResponseTimeoutInSec(), TimeUnit.SECONDS)
+                .build();
 
         setUpRestClient(config, connectionManager, httpClientRequestConfig);
     }
@@ -216,13 +219,13 @@ public class RestClientImpl implements RestClient {
     @Override
     public AISSignResponse requestSignature(AISSignRequest requestWrapper, Trace trace) {
         return sendAndReceive("SignRequest", config.getRestServiceSignUrl(),
-                              requestWrapper, AISSignResponse.class, trace);
+                requestWrapper, AISSignResponse.class, trace);
     }
 
     @Override
     public AISSignResponse pollForSignatureStatus(AISPendingRequest requestWrapper, Trace trace) {
         return sendAndReceive("PendingRequest", config.getRestServicePendingUrl(),
-                              requestWrapper, AISSignResponse.class, trace);
+                requestWrapper, AISSignResponse.class, trace);
     }
 
     // ----------------------------------------------------------------------------------------------------
@@ -233,13 +236,13 @@ public class RestClientImpl implements RestClient {
                                                @SuppressWarnings("SameParameterValue") Class<TResp> responseClass,
                                                Trace trace) {
         logProtocol.debug("{}: Serializing object of type {} to JSON - {}",
-                          operationName, requestObject.getClass().getSimpleName(), trace.getId());
+                operationName, requestObject.getClass().getSimpleName(), trace.getId());
         String requestJson;
         try {
             requestJson = jacksonMapper.writeValueAsString(requestObject);
         } catch (JsonProcessingException e) {
             throw new AisClientException("Failed to serialize request object to JSON, for operation " +
-                                         operationName + " - " + trace.getId(), e);
+                    operationName + " - " + trace.getId(), e);
         }
 
         HttpPost httpPost = new HttpPost(serviceUrl);
@@ -256,7 +259,7 @@ public class RestClientImpl implements RestClient {
                 responseJson = EntityUtils.toString(response.getEntity());
             } catch (ParseException e) {
                 throw new AisClientException("Failed to interpret the HTTP response content as a string, for operation " +
-                                             operationName + " - " + trace.getId(), e);
+                        operationName + " - " + trace.getId(), e);
             }
             if (response.getCode() == 200) {
                 if (logReqResp.isInfoEnabled()) {
@@ -271,14 +274,14 @@ public class RestClientImpl implements RestClient {
                     return jacksonMapper.readValue(responseJson, responseClass);
                 } catch (JsonProcessingException e) {
                     throw new AisClientException("Failed to deserialize JSON content to object of type " +
-                                                 responseClass.getSimpleName() + " for operation " +
-                                                 operationName + " - " +
-                                                 trace.getId(), e);
+                            responseClass.getSimpleName() + " for operation " +
+                            operationName + " - " +
+                            trace.getId(), e);
                 }
             } else {
                 throw new AisClientException("Received fault response: HTTP " +
-                                             response.getCode() + " " +
-                                             response.getReasonPhrase() + " - " + trace.getId());
+                        response.getCode() + " " +
+                        response.getReasonPhrase() + " - " + trace.getId());
             }
         } catch (SSLException e) {
             throw new AisClientException("TLS/SSL connection failure for " + operationName + " - " + trace.getId(), e);
@@ -342,12 +345,16 @@ public class RestClientImpl implements RestClient {
                 if (pemKeyPair instanceof PEMEncryptedKeyPair) {
                     if (Utils.isEmpty(keyPassword)) {
                         throw new AisClientException("The client private key is encrypted but there is no key password provided " +
-                                                     "(check field 'client.auth.keyPassword' from the config.properties or from " +
-                                                     "the REST client configuration)");
+                                "(check field 'client.auth.keyPassword' from the config.properties or from " +
+                                "the REST client configuration)");
                     }
                     PEMDecryptorProvider decryptionProv = new JcePEMDecryptorProviderBuilder().build(keyPassword.toCharArray());
                     PEMKeyPair decryptedKeyPair = ((PEMEncryptedKeyPair) pemKeyPair).decryptKeyPair(decryptionProv);
                     privateKeyInfo = decryptedKeyPair.getPrivateKeyInfo();
+                } else if (pemKeyPair instanceof PKCS8EncryptedPrivateKeyInfo) {
+                    InputDecryptorProvider decryptionProv = new JcePKCSPBEInputDecryptorProviderBuilder()
+                            .setProvider(BouncyCastleProvider.PROVIDER_NAME).build(keyPassword.toCharArray());
+                    privateKeyInfo = ((PKCS8EncryptedPrivateKeyInfo) pemKeyPair).decryptPrivateKeyInfo(decryptionProv);
                 } else {
                     privateKeyInfo = ((PEMKeyPair) pemKeyPair).getPrivateKeyInfo();
                 }
