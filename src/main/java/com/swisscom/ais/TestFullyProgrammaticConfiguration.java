@@ -40,22 +40,25 @@ public class TestFullyProgrammaticConfiguration {
         RestClientConfiguration restConfig = new RestClientConfiguration();
         restConfig.setRestServiceSignUrl("https://ais.swisscom.com/AIS-Server/rs/v1.0/sign");
         restConfig.setRestServicePendingUrl("https://ais.swisscom.com/AIS-Server/rs/v1.0/pending");
-        restConfig.setServerCertificateFile("/home/user/ais-server.crt");
-        restConfig.setClientKeyFile("/home/user/ais-client.key");
-        restConfig.setClientKeyPassword("secret");
-        restConfig.setClientCertificateFile("/home/user/ais-client.crt");
-
+        restConfig.setServerCertificateFile("/Users/lalkumar/Desktop/server.crt");
+//        restConfig.setClientKeyFile("/Users/lalkumar/Desktop/server.key");
+        restConfig.setClientKeyPassword("embi");
+        restConfig.setClientCertificateFile("/Users/lalkumar/Desktop/ais-client.crt");
+        System.out.println("before passing restClient");
+        System.out.println(restConfig);
         RestClientImpl restClient = new RestClientImpl();
         restClient.setConfiguration(restConfig);
 
         // then configure the AIS client; this is done once per application lifetime
         AisClientConfiguration aisConfig = new AisClientConfiguration();
-        aisConfig.setSignaturePollingIntervalInSeconds(10);
-        aisConfig.setSignaturePollingRounds(10);
+        aisConfig.setSignaturePollingIntervalInSeconds(300);
+        aisConfig.setSignaturePollingRounds(100);
 
         try (AisClientImpl aisClient = new AisClientImpl(aisConfig, restClient)) {
             // third, configure a UserData instance with details about this signature
             // this is done for each signature (can also be created once and cached on a per-user basis)
+        	System.out.println("inside aisClient");
+            System.out.println(restClient);
             UserData userData = new UserData();
             userData.setClaimedIdentityName("ais-90days-trial");
             userData.setClaimedIdentityKey("keyEntity");
@@ -75,14 +78,17 @@ public class TestFullyProgrammaticConfiguration {
 
             // fourth, populate a PdfHandle with details about the document to be signed. More than one PdfHandle can be given
             PdfHandle document = new PdfHandle();
-            document.setInputFromFile("/home/user/input.pdf");
-            document.setOutputToFile("/home/user/signed-output.pdf");
-            document.setDigestAlgorithm(DigestAlgorithm.SHA256);
-
+            document.setInputFromFile("/Users/lalkumar/Desktop/testing.pdf");
+            document.setOutputToFile("/Users/lalkumar/Desktop/testing-output.pdf");
+            document.setDigestAlgorithm(DigestAlgorithm.SHA512);
+            System.out.println("userdata dai "+userData);
             // finally, do the signature
             SignatureResult result = aisClient.signWithOnDemandCertificateAndStepUp(Collections.singletonList(document), userData);
             if (result == SignatureResult.SUCCESS) {
                 // yay!
+            	System.out.println("success");
+            } else {
+            	System.out.println(result);
             }
         }
     }
